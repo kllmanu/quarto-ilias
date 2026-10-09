@@ -1,0 +1,20 @@
+---
+title: Adding fractions
+format: qti-html
+---
+
+::: {.qti-item identifier="FRACTIONS_1" title="Adding fractions"}
+What is $1/2 + 1/4$?
+
+::: {.qti-choice identifier="A"}
+1/4
+:::
+
+::: {.qti-choice identifier="B" correct="true"}
+3/4
+:::
+
+::: {.qti-choice identifier="C"}
+1
+:::
+:::

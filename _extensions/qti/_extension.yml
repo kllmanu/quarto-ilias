@@ -1,0 +1,14 @@
+title: QTI 2.1
+author: Local extension
+version: 1.0.0
+contributes:
+  formats:
+    html:
+      pandoc:
+        to: qti-writer.lua
+      template: qti.xml
+      filters:
+        - qti.lua
+      output-file: assessment
+      output-ext: xml
+      standalone: true

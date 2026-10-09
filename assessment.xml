@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v2p1" identifier="FRACTIONS_1" title="Adding fractions" adaptive="false" timeDependent="false">
+  <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
+    <correctResponse><value>B</value></correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
+    <defaultValue><value>0</value></defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
+      <prompt>What is 1/2 + 1/4?</prompt>
+      <simpleChoice identifier="A">1/4</simpleChoice>
+      <simpleChoice identifier="B">3/4</simpleChoice>
+      <simpleChoice identifier="C">1</simpleChoice>
+    </choiceInteraction>
+  </itemBody>
+  <responseProcessing template="http://www.imsglobal.org/question/qti_v2p1/rptemplates/match_correct"/>
+</assessmentItem>
