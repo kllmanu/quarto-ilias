@@ -6,25 +6,22 @@ questions with plain-text prompts and choices.
 
 ## Use
 
-Create a question using one `.qti-item` fenced div, containing its prompt and at
-least two `.qti-choice` fenced divs. Mark exactly one choice `correct="true"`.
+Define the question in the root `qti` YAML field. Include an item identifier,
+title, prompt, and at least two choices. Mark exactly one choice `correct: true`.
 
-```markdown
-::: {.qti-item identifier="FRACTIONS_1" title="Fractions & addition"}
-What is $1/2 + 1/4$?
-
-::: {.qti-choice identifier="A"}
-1/4
-:::
-
-::: {.qti-choice identifier="B" correct="true"}
-3/4
-:::
-
-::: {.qti-choice identifier="C"}
-1
-:::
-:::
+```yaml
+qti:
+  identifier: FRACTIONS_1
+  title: "Fractions & addition"
+  prompt: "What is 1/2 + 1/4?"
+  choices:
+    - identifier: A
+      text: 1/4
+    - identifier: B
+      text: 3/4
+      correct: true
+    - identifier: C
+      text: "1"
 ```
 
 Render with:
@@ -35,7 +32,8 @@ quarto render question.qmd --to qti-docbook
 
 The output is `assessment.xml`. QTI identifiers must begin with a letter or
 underscore and may contain letters, digits, underscores, periods, and hyphens.
-Choice identifiers default to `CHOICE_1`, `CHOICE_2`, and so on.
+Item identifiers default to `ITEM_1`; choice identifiers default to
+`CHOICE_1`, `CHOICE_2`, and so on.
 
-The XML document structure is defined in `_extensions/qti/qti.xml`; the Lua
-filter validates the item and supplies metadata to that template.
+The Lua filter validates the `qti` object and supplies normalized values to the
+QTI XML template.

@@ -1,41 +1,29 @@
-local function attr(div, name, default)
-    local value = div.attributes[name]
-    if value == nil or value == "" then
+local function field(map, name, default)
+    local value = map[name]
+    if value == nil then
         return default
     end
-    return value
+    return pandoc.utils.stringify(value)
 end
 
-local function text(blocks)
-    return pandoc.utils.stringify(blocks)
+local function valid_identifier(identifier)
+    return identifier:match("^[A-Za-z_][A-Za-z0-9_.%-]*$") ~= nil
 end
 
 function Pandoc(doc)
-    local items = {}
-    for _, block in ipairs(doc.blocks) do
-        if block.t == "Div" and block.classes:includes("qti-item") then
-            table.insert(items, block)
-        end
+    local qti = doc.meta.qti
+    if qti == nil or type(qti) ~= "table" then
+        error("QTI output requires a qti object in YAML front matter")
     end
 
-    if #items ~= 1 then
-        error("QTI output requires exactly one .qti-item block per document")
+    local identifier = field(qti, "identifier", "ITEM_1")
+    if not valid_identifier(identifier) then
+        error("Invalid QTI item identifier: " .. identifier)
     end
 
-    local item = items[1]
-    local choices = {}
-    local prompt = {}
-
-    for _, block in ipairs(item.content) do
-        if block.t == "Div" and block.classes:includes("qti-choice") then
-            table.insert(choices, block)
-        else
-            table.insert(prompt, block)
-        end
-    end
-
-    if #choices < 2 then
-        error("A .qti-item must contain at least two .qti-choice blocks")
+    local choices = qti.choices
+    if choices == nil or type(choices) ~= "table" or #choices < 2 then
+        error("qti.choices must contain at least two choices")
     end
 
     local correct_count = 0
@@ -44,8 +32,12 @@ function Pandoc(doc)
     local used_ids = {}
 
     for index, choice in ipairs(choices) do
-        local choice_id = attr(choice, "identifier", "CHOICE_" .. index)
-        if not choice_id:match("^[A-Za-z_][A-Za-z0-9_.%-]*$") then
+        if type(choice) ~= "table" then
+            error("Each qti.choices entry must be an object")
+        end
+
+        local choice_id = field(choice, "identifier", "CHOICE_" .. index)
+        if not valid_identifier(choice_id) then
             error("Invalid QTI choice identifier: " .. choice_id)
         end
         if used_ids[choice_id] then
@@ -53,30 +45,35 @@ function Pandoc(doc)
         end
         used_ids[choice_id] = true
 
-        if attr(choice, "correct", "false") == "true" then
+        if field(choice, "correct", "false") == "true" then
             correct_count = correct_count + 1
             correct_id = choice_id
         end
 
+        local choice_text = field(choice, "text", "")
+        if choice_text == "" then
+            error("Each qti.choices entry must have non-empty text")
+        end
         table.insert(template_choices, {
             identifier = choice_id,
-            text = text(choice.content)
+            text = choice_text
         })
     end
 
     if correct_count ~= 1 then
-        error("A .qti-item must have exactly one .qti-choice with correct=\"true\"")
+        error("Exactly one qti.choices entry must have correct: true")
     end
 
-    local identifier = attr(item, "identifier", "ITEM_1")
-    if not identifier:match("^[A-Za-z_][A-Za-z0-9_.%-]*$") then
-        error("Invalid QTI item identifier: " .. identifier)
+    local prompt = field(qti, "prompt", "")
+    if prompt == "" then
+        error("qti.prompt must not be empty")
     end
+
     doc.meta.qti = {
         identifier = identifier,
-        title = attr(item, "title", identifier),
+        title = field(qti, "title", identifier),
         correct = correct_id,
-        prompt = text(prompt),
+        prompt = prompt,
         choices = template_choices
     }
     doc.blocks = {}
