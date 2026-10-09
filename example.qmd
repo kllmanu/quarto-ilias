@@ -3,7 +3,7 @@ title: Adding fractions
 format: qti-html
 ---
 
-::: {.qti-item identifier="FRACTIONS_1" title="Adding fractions"}
+::: {.qti-item identifier="FRACTIONS_1" title="Fractions & addition"}
 What is $1/2 + 1/4$?
 
 ::: {.qti-choice identifier="A"}

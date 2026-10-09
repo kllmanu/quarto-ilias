@@ -3,9 +3,7 @@ author: Local extension
 version: 1.0.0
 contributes:
   formats:
-    html:
-      pandoc:
-        to: qti-writer.lua
+    docbook:
       template: qti.xml
       filters:
         - qti.lua

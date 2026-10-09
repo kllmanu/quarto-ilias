@@ -10,7 +10,7 @@ Create a question using one `.qti-item` fenced div, containing its prompt and at
 least two `.qti-choice` fenced divs. Mark exactly one choice `correct="true"`.
 
 ```markdown
-::: {.qti-item identifier="FRACTIONS_1" title="Adding fractions"}
+::: {.qti-item identifier="FRACTIONS_1" title="Fractions & addition"}
 What is $1/2 + 1/4$?
 
 ::: {.qti-choice identifier="A"}
@@ -30,7 +30,7 @@ What is $1/2 + 1/4$?
 Render with:
 
 ```sh
-quarto render question.qmd --to qti-html
+quarto render question.qmd --to qti-docbook
 ```
 
 The output is `assessment.xml`. QTI identifiers must begin with a letter or
@@ -38,4 +38,4 @@ underscore and may contain letters, digits, underscores, periods, and hyphens.
 Choice identifiers default to `CHOICE_1`, `CHOICE_2`, and so on.
 
 The XML document structure is defined in `_extensions/qti/qti.xml`; the Lua
-filter validates the item and supplies escaped values to that template.
+filter validates the item and supplies metadata to that template.

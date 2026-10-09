@@ -1,12 +1,3 @@
-local function xml_escape(value)
-    return tostring(value)
-        :gsub("&", "&amp;")
-        :gsub("<", "&lt;")
-        :gsub(">", "&gt;")
-        :gsub('"', "&quot;")
-        :gsub("'", "&apos;")
-end
-
 local function attr(div, name, default)
     local value = div.attributes[name]
     if value == nil or value == "" then
@@ -16,7 +7,7 @@ local function attr(div, name, default)
 end
 
 local function text(blocks)
-    return xml_escape(pandoc.utils.stringify(blocks))
+    return pandoc.utils.stringify(blocks)
 end
 
 function Pandoc(doc)
@@ -68,7 +59,7 @@ function Pandoc(doc)
         end
 
         table.insert(template_choices, {
-            identifier = xml_escape(choice_id),
+            identifier = choice_id,
             text = text(choice.content)
         })
     end
@@ -82,9 +73,9 @@ function Pandoc(doc)
         error("Invalid QTI item identifier: " .. identifier)
     end
     doc.meta.qti = {
-        identifier = xml_escape(identifier),
-        title = xml_escape(attr(item, "title", identifier)),
-        correct = xml_escape(correct_id),
+        identifier = identifier,
+        title = attr(item, "title", identifier),
+        correct = correct_id,
         prompt = text(prompt),
         choices = template_choices
     }
