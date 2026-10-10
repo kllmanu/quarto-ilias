@@ -1,5 +1,7 @@
-#!/usr/bin/env python3
-"""Pre-render hook: validate each document's `qti` front matter against the JSON Schema."""
+"""Pre-render hook: validate each document's `qti` front matter against the JSON Schema.
+
+Reads the files to check from QUARTO_PROJECT_INPUT_FILES, or from the command line.
+"""
 
 import json
 import os
@@ -9,15 +11,19 @@ import sys
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
-import yaml
-from jsonschema import Draft202012Validator
-from jsonschema.exceptions import best_match
-from referencing import Registry, Resource
-from referencing.jsonschema import DRAFT202012
-
-PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
-SCHEMA_PATH = PROJECT_ROOT / "_extensions/qti/schema/qti.schema.json"
+HERE = pathlib.Path(__file__).resolve().parent
+SCHEMA_PATH = HERE.parent / "schema" / "qti.schema.json"
 FRONT_MATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*(?:\n|\Z)", re.DOTALL)
+
+try:
+    import yaml
+    from jsonschema import Draft202012Validator
+    from jsonschema.exceptions import best_match
+    from referencing import Registry, Resource
+    from referencing.jsonschema import DRAFT202012
+except ImportError as error:
+    sys.exit(f"Missing Python package '{error.name}'. Install with: "
+             f"pip install -r {HERE / 'requirements.txt'}")
 
 
 def retrieve(uri):
@@ -31,14 +37,13 @@ def build_validator():
 
 
 def input_files():
-    listed = os.environ.get("QUARTO_PROJECT_INPUT_FILES", "").split()
-    files = [pathlib.Path(name) for name in listed] or sorted(PROJECT_ROOT.glob("examples/*.qmd"))
-    return [path for path in files if path.suffix == ".qmd"]
+    listed = sys.argv[1:] or os.environ.get("QUARTO_PROJECT_INPUT_FILES", "").split()
+    return [pathlib.Path(name) for name in listed if name.endswith(".qmd")]
 
 
 def front_matter(path):
     match = FRONT_MATTER.match(path.read_text())
-    return yaml.safe_load(match.group(1)) if match else {}
+    return (yaml.safe_load(match.group(1)) if match else None) or {}
 
 
 def main():
@@ -46,7 +51,10 @@ def main():
     failed = False
 
     for path in input_files():
-        error = best_match(validator.iter_errors(front_matter(path)))
+        data = front_matter(path)
+        if "qti" not in data:
+            continue
+        error = best_match(validator.iter_errors(data))
         if error:
             failed = True
             location = ".".join(str(part) for part in error.absolute_path) or "(root)"

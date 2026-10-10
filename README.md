@@ -1,7 +1,16 @@
 # Quarto QTI 3.0 Extension
 
 This extension renders a Quarto document as a standalone IMS QTI 3.0
-`assessmentItem` XML file. The root `qti.type` selects the interaction template.
+`qti-assessment-item` XML file. The root `qti.type` selects the interaction template.
+
+## Install
+
+```sh
+quarto add <owner>/<repo>
+```
+
+This copies `_extensions/qti/` into your project. Rendering needs nothing else.
+Use the format as `format: qti-docbook`.
 
 ## Use
 
@@ -64,26 +73,38 @@ dispatcher, so modules return plain strings.
 
 ## Validation
 
-Rendering this project (`quarto render`) renders `examples/*.qmd` and checks them
-with two hooks configured in `_quarto.yml`:
+Validation is optional and ships with the extension. Add the two hooks to your
+project's `_quarto.yml`:
 
-- **pre-render** (`validation/validate_front_matter.py`) validates each
-  document's front matter against the JSON Schema, and stops the render on an
-  error.
-- **post-render** (`validation/validate_output.sh`) validates every generated
-  XML file against the official IMS QTI 3.0 XSD with `xmllint`.
+```yaml
+project:
+  pre-render: _extensions/qti/validation/validate_front_matter.py
+  post-render: _extensions/qti/validation/validate_output.py
+```
 
-The pre-render hook needs Python packages and `xmllint` (libxml2) must be on the
-`PATH`:
+- **pre-render** validates each document's `qti` front matter against the JSON
+  Schema and stops the render on an error. Documents without a `qti` key are
+  skipped.
+- **post-render** validates every generated QTI XML file against the official
+  IMS QTI 3.0 XSD with `xmllint`. Other XML files are skipped.
+
+Both hooks need Python 3, and the post-render hook needs `xmllint` (libxml2) on
+the `PATH`:
 
 ```sh
-python3 -m venv .venv && .venv/bin/pip install -r validation/requirements.txt
+python3 -m venv .venv
+.venv/bin/pip install -r _extensions/qti/validation/requirements.txt
 PATH="$PWD/.venv/bin:$PATH" quarto render
 ```
+
+Without those dependencies, a hook stops with a message naming what is missing.
 
 The XSD is validated offline. `validation/catalog.xml` maps the schemas it
 imports to local copies in `validation/xsd/`, with a small stub standing in for
 MathML, which this extension never emits. The IMS schemas keep their original
 licence notices.
 
-Add one example per interaction type to `examples/`.
+## Development
+
+This repository renders `examples/*.qmd` with the hooks above, so `quarto
+render` checks the extension itself. Add one example per interaction type.

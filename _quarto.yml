@@ -2,7 +2,7 @@ project:
   render:
     - examples/*.qmd
   output-dir: _output
-  pre-render: validation/validate_front_matter.py
-  post-render: validation/validate_output.sh
+  pre-render: _extensions/qti/validation/validate_front_matter.py
+  post-render: _extensions/qti/validation/validate_output.py
 
 format: qti-docbook
