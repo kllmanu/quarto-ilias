@@ -67,6 +67,8 @@ Render with:
 quarto render quiz.qmd --to qti-docbook
 ```
 
+Before each render, the `clean_output.py` pre-render hook clears the configured
+project output directory, including when Quarto is invoked with `--no-clean`.
 This writes `quiz.xml` (the test) and a `quiz/` folder holding one
 `<identifier>.xml` per question. The test refers to the items by relative path,
 such as `quiz/ADD_FRACTIONS.xml`. A project with an `output-dir` gets all of them
@@ -137,15 +139,19 @@ and the filter keeps running.
 
 ## Validation
 
-Validation is optional and ships with the extension. Add the two hooks to your
+Cleanup and validation hooks ship with the extension. Configure them in your
 project's `_quarto.yml` (see above for adding packaging as well):
 
 ```yaml
 project:
-  pre-render: _extensions/qti/validation/validate_front_matter.py
+  pre-render:
+    - _extensions/qti/validation/clean_output.py
+    - _extensions/qti/validation/validate_front_matter.py
   post-render: _extensions/qti/validation/validate_output.py
 ```
 
+- **clean_output** empties `output-dir` before rendering. It uses Python's
+  standard library only and still runs when `--no-clean` is passed.
 - **pre-render** validates each document's `qti` data, including data loaded
   through `metadata-files`, against the JSON Schema and stops the render on an
   error. Documents without a `qti` key are skipped.
@@ -153,8 +159,8 @@ project:
   QTI 3.0 XSD using `lxml`, and every item file it references. A missing item
   file fails. Other XML files are skipped.
 
-Both hooks need Python 3 and a few packages from `requirements.txt` (`jsonschema`,
-`pyyaml` and `lxml`):
+The validation hooks need Python 3 and packages from `requirements.txt`
+(`jsonschema`, `pyyaml` and `lxml`):
 
 ```sh
 python3 -m venv .venv
@@ -162,9 +168,9 @@ python3 -m venv .venv
 PATH="$PWD/.venv/bin:$PATH" quarto render
 ```
 
-If a dependency is missing, the affected hook prints a message naming it and
-skips its check, and the render continues. Invalid front matter or invalid XML
-still fails the render.
+If a validation dependency is missing, the affected hook prints a message
+naming it and skips its check, and the render continues. Invalid front matter
+or invalid XML still fails the render.
 
 The XSD is validated offline. `validation/catalog.xml` maps the schemas it
 imports to local copies in `validation/xsd/`, with a small stub standing in for

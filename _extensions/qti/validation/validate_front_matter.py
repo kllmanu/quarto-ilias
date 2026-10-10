@@ -15,6 +15,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 SCHEMA_PATH = HERE.parent / "schema" / "qti.schema.json"
 FRONT_MATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*(?:\n|\Z)", re.DOTALL)
 
+
 try:
     import yaml
     from jsonschema import Draft202012Validator
