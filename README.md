@@ -113,8 +113,8 @@ project:
   render:
     - "*.qmd"
   post-render:
-    - _extensions/qti/validation/validate_output.py
-    - _extensions/qti/validation/package.py
+    - _extensions/qti/scripts/validate_output.py
+    - _extensions/qti/scripts/package.py
 ```
 
 List it after the validation hook: Quarto stops at the first failing hook, so an
@@ -139,17 +139,21 @@ and the filter keeps running.
 
 ## Validation
 
-Cleanup and validation hooks ship with the extension. Configure them in your
+Python hooks and their environment helper live in `_extensions/qti/scripts/`.
+Configure the hooks in your
 project's `_quarto.yml` (see above for adding packaging as well):
 
 ```yaml
 project:
   pre-render:
-    - _extensions/qti/validation/clean_output.py
-    - _extensions/qti/validation/validate_front_matter.py
-  post-render: _extensions/qti/validation/validate_output.py
+    - _extensions/qti/scripts/setup_environment.py
+    - _extensions/qti/scripts/clean_output.py
+    - _extensions/qti/scripts/validate_front_matter.py
+  post-render: _extensions/qti/scripts/validate_output.py
 ```
 
+- **setup_environment** creates a private Python environment and installs the
+  extension's dependencies on first use. Keep it first in the pre-render list.
 - **clean_output** empties `output-dir` before rendering. It uses Python's
   standard library only and still runs when `--no-clean` is passed.
 - **pre-render** validates each document's `qti` data, including data loaded
@@ -159,18 +163,26 @@ project:
   QTI 3.0 XSD using `lxml`, and every item file it references. A missing item
   file fails. Other XML files are skipped.
 
-The validation hooks need Python 3 and packages from `requirements.txt`
-(`jsonschema`, `pyyaml` and `lxml`):
+The hooks need Python 3 with `venv` and `pip` support. The standalone setup hook
+installs `jsonschema`, `pyyaml` and `lxml` from
+`_extensions/qti/requirements.txt`; no manual installation or activation is
+needed. Just render normally:
 
 ```sh
-python3 -m venv .venv
-.venv/bin/pip install -r _extensions/qti/validation/requirements.txt
-PATH="$PWD/.venv/bin:$PATH" quarto render
+quarto render
 ```
 
-If a validation dependency is missing, the affected hook prints a message
-naming it and skips its check, and the render continues. Invalid front matter
-or invalid XML still fails the render.
+The environment lives under the user's cache directory (`~/.cache/quarto-qti`
+on Linux, respecting `XDG_CACHE_HOME`; `~/Library/Caches/quarto-qti` on macOS;
+`%LOCALAPPDATA%/quarto-qti` on Windows). It is reused across projects with the
+same Python interpreter and requirements, and a new environment is created
+when either changes. Nothing is installed into the user's global Python or
+project. Validators launch themselves with the cached interpreter; they never
+install dependencies.
+
+Initial setup requires access to the Python package index. Subsequent renders
+need no network access. Setup failures, missing dependencies, invalid front
+matter and invalid XML stop the render instead of skipping validation.
 
 The XSD is validated offline. `validation/catalog.xml` maps the schemas it
 imports to local copies in `validation/xsd/`, with a small stub standing in for

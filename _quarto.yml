@@ -3,8 +3,9 @@ project:
     - "*.qmd"
   output-dir: _output
   pre-render:
-    - _extensions/qti/validation/clean_output.py
-    - _extensions/qti/validation/validate_front_matter.py
+    - _extensions/qti/scripts/setup_environment.py
+    - _extensions/qti/scripts/clean_output.py
+    - _extensions/qti/scripts/validate_front_matter.py
   post-render:
-    - _extensions/qti/validation/validate_output.py
-    - _extensions/qti/validation/package.py
+    - _extensions/qti/scripts/validate_output.py
+    - _extensions/qti/scripts/package.py

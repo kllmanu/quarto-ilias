@@ -11,6 +11,10 @@ import sys
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
+from environment import run_in_environment
+
+run_in_environment()
+
 HERE = pathlib.Path(__file__).resolve().parent
 SCHEMA_PATH = HERE.parent / "schema" / "qti.schema.json"
 FRONT_MATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*(?:\n|\Z)", re.DOTALL)
@@ -23,10 +27,10 @@ try:
     from referencing import Registry, Resource
     from referencing.jsonschema import DRAFT202012
 except ImportError as error:
-    # Validation is optional, so a missing package must not block the render.
-    print(f"Skipping front matter validation: missing Python package '{error.name}'. "
-          f"Install with: pip install -r {HERE / 'requirements.txt'}", file=sys.stderr)
-    sys.exit(0)
+    print(f"Front matter validation failed: missing Python package '{error.name}'. "
+        f"Dependencies are listed in {HERE.parent / 'requirements.txt'}. "
+        "Remove the cached QTI environment and rerun the setup hook.", file=sys.stderr)
+    sys.exit(1)
 
 
 def retrieve(uri):

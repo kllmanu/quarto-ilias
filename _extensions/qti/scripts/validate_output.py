@@ -8,9 +8,13 @@ import os
 import pathlib
 import sys
 
+from environment import run_in_environment
+
+run_in_environment()
+
 HERE = pathlib.Path(__file__).resolve().parent
-XSD = HERE / "xsd" / "imsqti_asiv3p0p1_v1p0.xsd"
-CATALOG = HERE / "catalog.xml"
+XSD = HERE.parent / "validation" / "xsd" / "imsqti_asiv3p0p1_v1p0.xsd"
+CATALOG = HERE.parent / "validation" / "catalog.xml"
 QTI_NAMESPACE = "http://www.imsglobal.org/xsd/imsqtiasi_v3p0"
 
 # libxml2 reads the catalog on first use, so set it before importing lxml.
@@ -20,10 +24,10 @@ os.environ["XML_CATALOG_FILES"] = str(CATALOG)
 try:
     from lxml import etree
 except ImportError as error:
-    # Validation is optional, so a missing package must not fail the render.
-    print(f"Skipping QTI validation: missing Python package '{error.name}'. "
-          f"Install with: pip install -r {HERE / 'requirements.txt'}", file=sys.stderr)
-    sys.exit(0)
+    print(f"QTI validation failed: missing Python package '{error.name}'. "
+        f"Dependencies are listed in {HERE.parent / 'requirements.txt'}. "
+        "Remove the cached QTI environment and rerun the setup hook.", file=sys.stderr)
+    sys.exit(1)
 
 
 def output_files():
