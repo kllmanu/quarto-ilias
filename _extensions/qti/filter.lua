@@ -1,8 +1,8 @@
 local root = pandoc.path.directory(PANDOC_SCRIPT_FILE)
 package.path = root .. "/?.lua;" .. package.path
 
-local template = require("lib.template")
-local xml = require("lib.xml")
+local template = require("shared.template")
+local xml = require("shared.xml")
 
 -- Each type lives in interactions/<type>/ as <type>.lua and <type>.xml.
 local INTERACTIONS = {

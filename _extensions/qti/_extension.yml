@@ -5,7 +5,7 @@ contributes:
   formats:
     docbook:
       filters:
-        - qti.lua
+        - filter.lua
       output-file: assessment
       output-ext: xml
       standalone: false

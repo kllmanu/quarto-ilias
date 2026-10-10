@@ -56,5 +56,5 @@ supported interaction types.
 Each type lives in `_extensions/qti/interactions/<type>/` as `<type>.lua`
 (returns `context(qti)`, the template values) and `<type>.xml` (a complete QTI
 document template). Register the module in `INTERACTIONS` in
-`_extensions/qti/qti.lua`, and add its shape to the schema. Values are
+`_extensions/qti/filter.lua`, and add its shape to the schema. Values are
 XML-escaped by the dispatcher, so modules return plain strings.

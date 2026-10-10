@@ -1,5 +1,5 @@
-local item = require("lib.item")
-local meta = require("lib.meta")
+local item = require("shared.item")
+local meta = require("shared.meta")
 
 local M = {}
 
