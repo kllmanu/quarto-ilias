@@ -1,0 +1,9 @@
+---
+title: Greeting
+qti:
+  type: text_entry
+  identifier: HELLO_ENTRY
+  title: "Hello & goodbye"
+  prompt: "Type the greeting:"
+  correct: "Hello, example!"
+---

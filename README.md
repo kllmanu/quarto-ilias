@@ -41,7 +41,8 @@ Render with:
 quarto render question.qmd --to qti-docbook
 ```
 
-The output is `assessment.xml`. QTI identifiers must begin with a letter or
+The output is written next to the source name with an `.xml` extension, for
+example `question.xml`. QTI identifiers must begin with a letter or
 underscore and may contain letters, digits, underscores, periods, and hyphens.
 Item identifiers default to `ITEM_1`; choice identifiers default to
 `CHOICE_1`, `CHOICE_2`, and so on.
@@ -60,3 +61,29 @@ document template), and `<type>.schema.json` (its front matter shape). Register
 the module in `INTERACTIONS` in `_extensions/qti/filter.lua` and add a `$ref` to
 the schema in `schema/qti.schema.json`. Values are XML-escaped by the
 dispatcher, so modules return plain strings.
+
+## Validation
+
+Rendering this project (`quarto render`) renders `examples/*.qmd` and checks them
+with two hooks configured in `_quarto.yml`:
+
+- **pre-render** (`validation/validate_front_matter.py`) validates each
+  document's front matter against the JSON Schema, and stops the render on an
+  error.
+- **post-render** (`validation/validate_output.sh`) validates every generated
+  XML file against the official IMS QTI 2.1 XSD with `xmllint`.
+
+The pre-render hook needs Python packages and `xmllint` (libxml2) must be on the
+`PATH`:
+
+```sh
+python3 -m venv .venv && .venv/bin/pip install -r validation/requirements.txt
+PATH="$PWD/.venv/bin:$PATH" quarto render
+```
+
+The XSD is validated offline. `validation/catalog.xml` maps the schemas it
+imports to local copies in `validation/xsd/`, with a small stub standing in for
+MathML, which this extension never emits. The IMS schemas keep their original
+licence notices.
+
+Add one example per interaction type to `examples/`.

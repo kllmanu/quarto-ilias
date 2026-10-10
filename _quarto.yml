@@ -1,16 +1,8 @@
-# yaml-language-server: $schema=./_extensions/qti/schema/qti.schema.json
-title: Adding fractions
-format: qti-html
-qti:
-  identifier: asdf
-  type: choice
-  title: "Fractions & addition"
-  prompt: "What is 1/2 + 1/4?"
-  choices:
-    - identifier: A
-      text: 1/4
-    - identifier: B
-      text: 3/4
-      correct: true
-    - identifier: C
-      text: "1"
+project:
+  render:
+    - examples/*.qmd
+  output-dir: _output
+  pre-render: validation/validate_front_matter.py
+  post-render: validation/validate_output.sh
+
+format: qti-docbook

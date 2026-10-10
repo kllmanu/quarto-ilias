@@ -6,6 +6,5 @@ contributes:
     docbook:
       filters:
         - filter.lua
-      output-file: assessment
       output-ext: xml
       standalone: false
