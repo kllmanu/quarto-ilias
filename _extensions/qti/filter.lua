@@ -35,15 +35,15 @@ function Pandoc(doc)
     local qti = doc.meta.qti
     local output_file = quarto.doc.output_file
     local output_dir = pandoc.path.directory(output_file)
-    local test_file_name = pandoc.path.filename(output_file)
+    -- Items go into a folder named after the test, so several exams can share one output directory.
+    local exam_folder = files.exam_folder_name(pandoc.path.filename(output_file))
 
     local items, pending, seen = {}, {}, {}
     for index, question in ipairs(qti.questions) do
         local identifier, output = build_item(question, index)
-        local href = files.item_file_name(identifier)
+        local href = exam_folder .. "/" .. files.item_file_name(identifier)
 
         assert(not seen[identifier], "Duplicate question identifier: " .. identifier)
-        assert(href ~= test_file_name, "Question identifier '" .. identifier .. "' would overwrite the test file " .. href)
         seen[identifier] = true
 
         table.insert(pending, { path = output_dir .. "/" .. href, content = output })

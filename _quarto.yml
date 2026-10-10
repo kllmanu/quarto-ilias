@@ -1,6 +1,8 @@
 project:
   render:
-    - example.qmd
+    - "*.qmd"
   output-dir: _output
   pre-render: _extensions/qti/validation/validate_front_matter.py
-  post-render: _extensions/qti/validation/validate_output.py
+  post-render:
+    - _extensions/qti/validation/validate_output.py
+    - _extensions/qti/validation/package.py

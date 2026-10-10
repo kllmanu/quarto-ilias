@@ -52,20 +52,51 @@ Render with:
 quarto render quiz.qmd --to qti-docbook
 ```
 
-This writes `quiz.xml` (the test) and one `<identifier>.xml` per question beside
-it, so a document with an `output-dir` project setting gets all of them there.
-The test refers to the items by relative file name.
+This writes `quiz.xml` (the test) and a `quiz/` folder holding one
+`<identifier>.xml` per question. The test refers to the items by relative path,
+such as `quiz/ADD_FRACTIONS.xml`. A project with an `output-dir` gets all of them
+there.
+
+Each document gets its own folder, named after its output file, so one project can
+hold several exams without their items colliding:
+
+```
+_output/
+  quiz.xml   quiz/ADD_FRACTIONS.xml …   quiz.zip
+  exam2.xml  exam2/ADD_FRACTIONS.xml …  exam2.zip
+```
+
+The output file name may contain only letters, digits, underscores, hyphens and
+periods, because it becomes part of the item paths.
 
 Identifiers begin with a letter or underscore and may contain letters, digits,
 underscores, periods and hyphens, because a question's identifier is also its
-file name. They must be unique within a document, and a question can't be named
-after the document itself. Question identifiers default to `ITEM_1`, `ITEM_2`
-and so on, choice identifiers to `CHOICE_1`, `CHOICE_2`, and the test's to
-`TEST_1`. Quote choice text that YAML could interpret as a boolean or number,
-such as `"Yes"`, `"No"` or `"1"`.
+file name. They must be unique within a document, but two documents may reuse
+the same ones. Question identifiers default to `ITEM_1`, `ITEM_2` and so on,
+choice identifiers to `CHOICE_1`, `CHOICE_2`, and the test's to `TEST_1`. Quote
+choice text that YAML could interpret as a boolean or number, such as `"Yes"`,
+`"No"` or `"1"`.
 
-The extension doesn't build a content package yet. Importers that expect one need
-an `imsmanifest.xml` listing these files, zipped together.
+## Content packages
+
+Importers usually expect a QTI content package. The optional `package.py`
+post-render hook writes `<name>.zip` beside each test. It holds `imsmanifest.xml`
+at the root, the test, and the items the test references. The manifest follows
+the QTI 3.0 content packaging profile and lists the test with a dependency on
+each item. It needs only Python 3 and no extra packages.
+
+```yaml
+project:
+  render:
+    - "*.qmd"
+  post-render:
+    - _extensions/qti/validation/validate_output.py
+    - _extensions/qti/validation/package.py
+```
+
+List it after the validation hook: Quarto stops at the first failing hook, so an
+invalid exam is never packaged. Packaging also fails, leaving no zip, if the test
+references a missing item or a path outside the output folder.
 
 The JSON Schema entry point is `_extensions/qti/schema/qti.schema.json`. It
 describes the assessment, `schema/question.schema.json` picks the schema for each
@@ -86,7 +117,7 @@ and the filter keeps running.
 ## Validation
 
 Validation is optional and ships with the extension. Add the two hooks to your
-project's `_quarto.yml`:
+project's `_quarto.yml` (see above for adding packaging as well):
 
 ```yaml
 project:
@@ -121,5 +152,6 @@ licence notices.
 
 ## Development
 
-This repository renders `example.qmd` with the hooks above, so `quarto render`
-checks the extension itself. Keep one question of each interaction type in it.
+This repository renders every `.qmd` file with the hooks above, so
+`quarto render` checks the extension itself. Keep one question of each
+interaction type in `example.qmd`.
