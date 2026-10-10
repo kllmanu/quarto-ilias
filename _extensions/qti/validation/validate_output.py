@@ -1,6 +1,7 @@
 """Post-render hook: validate rendered QTI files against the official QTI 3.0 XSD.
 
 Reads the files to check from QUARTO_PROJECT_OUTPUT_FILES, or from the command line.
+For a test file, every item it references is validated too.
 """
 
 import os
@@ -34,27 +35,48 @@ def is_qti(path):
     return QTI_NAMESPACE in path.read_text(errors="replace")[:2000]
 
 
+def check(schema, path):
+    """Validate one file. Returns its parsed document (None if unreadable) and any error messages."""
+    try:
+        document = etree.parse(str(path))
+    except (OSError, etree.XMLSyntaxError) as error:
+        return None, [f"{path}: {error}"]
+
+    if schema.validate(document):
+        return document, []
+    return document, [f"{path}:{error.line}: {error.message}" for error in schema.error_log]
+
+
+def referenced_items(path, document):
+    refs = document.getroot().iter(f"{{{QTI_NAMESPACE}}}qti-assessment-item-ref")
+    return [path.parent / ref.get("href") for ref in refs]
+
+
 def main():
-    paths = [path for path in output_files() if is_qti(path)]
-    if not paths:
+    queue = [path for path in output_files() if is_qti(path)]
+    if not queue:
         return 0
 
     schema = etree.XMLSchema(etree.parse(str(XSD)))
+    checked = set()
     failed = False
 
-    for path in paths:
-        try:
-            valid = schema.validate(etree.parse(str(path)))
-            errors = [f"{path}:{error.line}: {error.message}" for error in schema.error_log]
-        except etree.XMLSyntaxError as error:
-            valid, errors = False, [f"{path}: {error}"]
+    while queue:
+        path = queue.pop(0)
+        if path in checked:
+            continue
+        checked.add(path)
 
-        if valid:
-            print(f"{path} validates", file=sys.stderr)
-        else:
+        document, errors = check(schema, path)
+        if errors:
             failed = True
             print(f"{path} fails to validate", file=sys.stderr)
             print("\n".join(errors), file=sys.stderr)
+        else:
+            print(f"{path} validates", file=sys.stderr)
+
+        if document is not None:
+            queue.extend(referenced_items(path, document))
 
     return 1 if failed else 0
 

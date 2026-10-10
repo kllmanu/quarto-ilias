@@ -3,9 +3,9 @@ local meta = require("shared.meta")
 
 local M = {}
 
-function M.context(qti)
-    local context = item.base_context(qti)
-    context.correct = meta.field(qti, "correct", "")
+function M.context(question, index)
+    local context = item.base_context(question, index)
+    context.correct = meta.field(question, "correct", "")
     return context
 end
 

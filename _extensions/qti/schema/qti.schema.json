@@ -1,25 +1,22 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Quarto QTI question front matter",
+  "title": "Quarto QTI assessment front matter",
   "type": "object",
   "required": ["qti"],
   "properties": {
     "qti": {
       "type": "object",
-      "required": ["type"],
+      "required": ["questions"],
       "properties": {
-        "type": { "enum": ["choice", "text_entry"] }
-      },
-      "allOf": [
-        {
-          "if": { "properties": { "type": { "const": "choice" } } },
-          "then": { "$ref": "../interactions/choice/choice.schema.json" }
-        },
-        {
-          "if": { "properties": { "type": { "const": "text_entry" } } },
-          "then": { "$ref": "../interactions/text_entry/text_entry.schema.json" }
+        "identifier": { "$ref": "item.schema.json#/$defs/identifier" },
+        "title": { "$ref": "item.schema.json#/$defs/title" },
+        "questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "question.schema.json" }
         }
-      ]
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

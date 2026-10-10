@@ -3,12 +3,12 @@ local meta = require("shared.meta")
 
 local M = {}
 
-function M.context(qti)
-    local context = item.base_context(qti)
+function M.context(question, index)
+    local context = item.base_context(question, index)
     context.choices = {}
 
-    for index, choice in ipairs(qti.choices) do
-        local identifier = meta.field(choice, "identifier", "CHOICE_" .. index)
+    for position, choice in ipairs(question.choices) do
+        local identifier = meta.field(choice, "identifier", "CHOICE_" .. position)
         if meta.field(choice, "correct", "false") == "true" then
             context.correct = identifier
         end

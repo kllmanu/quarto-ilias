@@ -1,8 +1,6 @@
 project:
   render:
-    - examples/*.qmd
+    - example.qmd
   output-dir: _output
   pre-render: _extensions/qti/validation/validate_front_matter.py
   post-render: _extensions/qti/validation/validate_output.py
-
-format: qti-docbook

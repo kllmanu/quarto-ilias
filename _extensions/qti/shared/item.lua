@@ -3,12 +3,12 @@ local meta = require("shared.meta")
 local M = {}
 
 -- Template values shared by every interaction type.
-function M.base_context(qti)
-    local identifier = meta.field(qti, "identifier", "ITEM_1")
+function M.base_context(question, index)
+    local identifier = meta.field(question, "identifier", "ITEM_" .. index)
     return {
         identifier = identifier,
-        title = meta.field(qti, "title", identifier),
-        prompt = meta.field(qti, "prompt", ""),
+        title = meta.field(question, "title", identifier),
+        prompt = meta.field(question, "prompt", ""),
     }
 end
 
