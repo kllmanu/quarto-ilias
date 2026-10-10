@@ -1,16 +1,1 @@
----
-title: Adding fractions
-format: qti-docbook
-qti:
-  identifier: FRACTIONS_1
-  title: "Fractions & addition"
-  prompt: "What is 1/2 + 1/4?"
-  choices:
-    - identifier: A
-      text: 1/4
-    - identifier: B
-      text: 3/4
-      correct: true
-    - identifier: C
-      text: "1"
----
+Hello, example!

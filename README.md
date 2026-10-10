@@ -35,5 +35,7 @@ underscore and may contain letters, digits, underscores, periods, and hyphens.
 Item identifiers default to `ITEM_1`; choice identifiers default to
 `CHOICE_1`, `CHOICE_2`, and so on.
 
-The Lua filter validates the `qti` object and supplies normalized values to the
-QTI XML template.
+The JSON Schema at `_extensions/qti/qti.schema.json` describes the `qti` front
+matter and is associated with the example for editor validation. The Lua filter
+normalizes the validated values for the QTI XML template. Schema validation is
+provided by the editor; command-line rendering assumes the front matter is valid.
