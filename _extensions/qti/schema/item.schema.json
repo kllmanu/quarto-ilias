@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fields shared by every QTI interaction type",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "prompt": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

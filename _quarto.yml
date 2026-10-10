@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=./_extensions/qti/schema/qti.schema.json
 title: Adding fractions
-format: qti-docbook
+format: qti-html
 qti:
-  type: choice
   identifier: asdf
+  type: choice
   title: "Fractions & addition"
   prompt: "What is 1/2 + 1/4?"
   choices:

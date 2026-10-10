@@ -6,63 +6,8 @@
   "properties": {
     "qti": {
       "oneOf": [
-        {
-          "title": "Single-answer multiple choice",
-          "type": "object",
-          "required": ["type", "prompt", "choices"],
-          "properties": {
-            "type": { "const": "choice" },
-            "identifier": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$",
-              "default": "ITEM_1"
-            },
-            "title": { "type": "string" },
-            "prompt": { "type": "string", "minLength": 1 },
-            "choices": {
-              "type": "array",
-              "minItems": 2,
-              "items": {
-                "type": "object",
-                "required": ["text"],
-                "properties": {
-                  "identifier": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$"
-                  },
-                  "text": { "type": "string", "minLength": 1 },
-                  "correct": { "type": "boolean", "default": false }
-                },
-                "additionalProperties": false
-              },
-              "contains": {
-                "type": "object",
-                "required": ["correct"],
-                "properties": { "correct": { "const": true } }
-              },
-              "minContains": 1,
-              "maxContains": 1
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "title": "Text entry",
-          "type": "object",
-          "required": ["type", "prompt", "correct"],
-          "properties": {
-            "type": { "const": "text_entry" },
-            "identifier": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$",
-              "default": "ITEM_1"
-            },
-            "title": { "type": "string" },
-            "prompt": { "type": "string", "minLength": 1 },
-            "correct": { "type": "string", "minLength": 1 }
-          },
-          "additionalProperties": false
-        }
+        { "$ref": "../interactions/choice/choice.schema.json" },
+        { "$ref": "../interactions/text_entry/text_entry.schema.json" }
       ]
     }
   },
