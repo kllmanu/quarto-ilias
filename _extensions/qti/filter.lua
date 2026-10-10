@@ -27,7 +27,7 @@ local function build_item(question, index)
 
     local context = interaction.context(question, index)
     local folder = "interactions/" .. interaction_type
-    local output = template.render(template_file(folder, interaction_type), xml.escape_values(context))
+    local output = xml.format(template.render(template_file(folder, interaction_type), xml.escape_values(context)))
     return context.identifier, output
 end
 
@@ -56,6 +56,6 @@ function Pandoc(doc)
     end
 
     local context = xml.escape_values(assessment_test.context(qti, items, exam_folder))
-    local output = template.render(template_file("test", "test"), context)
+    local output = xml.format(template.render(template_file("test", "test"), context))
     return pandoc.Pandoc({ pandoc.RawBlock("docbook", output) }, doc.meta)
 end

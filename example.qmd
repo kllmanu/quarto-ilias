@@ -3,31 +3,24 @@
 title: Fractions quiz
 format: qti-docbook
 qti:
-  identifier: FRACTIONS_QUIZ
-  title: "Fractions & decimals"
-  questions:
-    - type: choice
-      identifier: ADD_FRACTIONS
-      title: "Adding fractions"
-      prompt: "What is 1/2 + 1/4?"
-      choices:
-        - identifier: A
-          text: 1/4
-        - identifier: B
-          text: 3/4
-          correct: true
-        - identifier: C
-          text: "1"
-    - type: text_entry
-      identifier: HALF_AS_DECIMAL
-      title: "Fraction to decimal"
-      prompt: "Write 1/2 as a decimal:"
-      correct: "0.5"
-    - type: choice
-      identifier: COMPARE
-      prompt: "Which statement is true?"
-      choices:
-        - text: "1/3 < 1/2"
-          correct: true
-        - text: "1/3 > 1/2"
+    title: "Fractions & decimals"
+    questions:
+        - type: choice
+          title: "Adding fractions"
+          prompt: "What is 1/2 + 1/4?"
+          choices:
+              - text: 1/4
+              - text: 3/4
+                correct: true
+              - text: "1"
+        - type: text_entry
+          title: "Fraction to decimal"
+          prompt: "Write 1/2 as a decimal:"
+          correct: "0.5"
+        - type: choice
+          prompt: "Which statement is true?"
+          choices:
+              - text: "1/3 < 1/2"
+                correct: true
+              - text: "1/3 > 1/2"
 ---
