@@ -1,6 +1,6 @@
-# Quarto QTI 2.1 Extension
+# Quarto QTI 3.0 Extension
 
-This extension renders a Quarto document as a standalone IMS QTI 2.1
+This extension renders a Quarto document as a standalone IMS QTI 3.0
 `assessmentItem` XML file. The root `qti.type` selects the interaction template.
 
 ## Use
@@ -71,7 +71,7 @@ with two hooks configured in `_quarto.yml`:
   document's front matter against the JSON Schema, and stops the render on an
   error.
 - **post-render** (`validation/validate_output.sh`) validates every generated
-  XML file against the official IMS QTI 2.1 XSD with `xmllint`.
+  XML file against the official IMS QTI 3.0 XSD with `xmllint`.
 
 The pre-render hook needs Python packages and `xmllint` (libxml2) must be on the
 `PATH`:

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Maps the remote schema locations imported by the QTI XSD to local copies. -->
+<!-- Maps the remote schema locations imported by the QTI 3.0 XSD to local copies. -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
-  <system systemId="http://www.imsglobal.org/xsd/w3/2001/xml.xsd" uri="xsd/xml.xsd"/>
-  <system systemId="http://www.imsglobal.org/xsd/w3/2001/XInclude.xsd" uri="xsd/XInclude.xsd"/>
-  <system systemId="http://www.imsglobal.org/profile/apip/apipv1p0/apipv1p0_qtiextv2p1_v1p0.xsd" uri="xsd/apipv1p0_qtiextv2p1_v1p0.xsd"/>
-  <system systemId="http://www.w3.org/Math/XMLSchema/mathml2/mathml2.xsd" uri="xsd/mathml-stub.xsd"/>
+  <system systemId="https://purl.imsglobal.org/spec/w3/2001/schema/xsd/xml.xsd" uri="xsd/xml.xsd"/>
+  <system systemId="https://purl.imsglobal.org/spec/w3/2001/schema/xsd/XInclude.xsd" uri="xsd/XInclude.xsd"/>
+  <system systemId="https://purl.imsglobal.org/spec/ssml/v1p1/schema/xsd/ssmlv1p1-core.xsd" uri="xsd/ssmlv1p1-core.xsd"/>
+  <system systemId="https://purl.imsglobal.org/spec/mathml/v3p0/schema/xsd/mathml3.xsd" uri="xsd/mathml-stub.xsd"/>
 </catalog>

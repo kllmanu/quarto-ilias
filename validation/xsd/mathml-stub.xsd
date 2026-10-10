@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Stands in for the full MathML schema; QTI only references m:math, and this extension never emits it. -->
+<!-- Stands in for the full MathML schema; QTI only references m3:math, and this extension never emits it. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://www.w3.org/1998/Math/MathML" elementFormDefault="qualified">
   <xs:element name="math">
     <xs:complexType mixed="true">
-      <xs:sequence>
-        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-      </xs:sequence>
+      <xs:sequence><xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/></xs:sequence>
       <xs:anyAttribute processContents="skip"/>
     </xs:complexType>
   </xs:element>
