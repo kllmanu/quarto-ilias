@@ -4,9 +4,8 @@ version: 1.0.0
 contributes:
   formats:
     docbook:
-      template: qti.xml
       filters:
         - qti.lua
       output-file: assessment
       output-ext: xml
-      standalone: true
+      standalone: false

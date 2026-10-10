@@ -2,6 +2,7 @@
 title: Adding fractions
 format: qti-docbook
 qti:
+  type: choice
   identifier: asdf
   title: "Fractions & addition"
   prompt: "What is 1/2 + 1/4?"

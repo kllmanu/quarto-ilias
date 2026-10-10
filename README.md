@@ -1,8 +1,7 @@
 # Quarto QTI 2.1 Extension
 
-This extension renders one Quarto document as a standalone IMS QTI 2.1
-`assessmentItem` XML file. It currently supports single-answer multiple-choice
-questions with plain-text prompts and choices.
+This extension renders a Quarto document as a standalone IMS QTI 2.1
+`assessmentItem` XML file. The root `qti.type` selects the interaction template.
 
 ## Use
 
@@ -11,6 +10,7 @@ title, prompt, and at least two choices. Mark exactly one choice `correct: true`
 
 ```yaml
 qti:
+  type: choice
   identifier: FRACTIONS_1
   title: "Fractions & addition"
   prompt: "What is 1/2 + 1/4?"
@@ -24,6 +24,17 @@ qti:
       text: "1"
 ```
 
+Text-entry questions use `type: text_entry` and a single `correct` string:
+
+```yaml
+qti:
+  type: text_entry
+  identifier: HELLO_ENTRY
+  title: Hello
+  prompt: "Type the greeting shown below:"
+  correct: "Hello, example!"
+```
+
 Render with:
 
 ```sh
@@ -34,8 +45,9 @@ The output is `assessment.xml`. QTI identifiers must begin with a letter or
 underscore and may contain letters, digits, underscores, periods, and hyphens.
 Item identifiers default to `ITEM_1`; choice identifiers default to
 `CHOICE_1`, `CHOICE_2`, and so on.
+Quote choice text that YAML could interpret as a boolean or number, such as
+`"Yes"`, `"No"`, or `"1"`.
 
-The JSON Schema at `_extensions/qti/qti.schema.json` describes the `qti` front
-matter and is associated with the example for editor validation. The Lua filter
-normalizes the validated values for the QTI XML template. Schema validation is
-provided by the editor; command-line rendering assumes the front matter is valid.
+The JSON Schema at `_extensions/qti/qti.schema.json` describes the supported
+interaction types. The filter selects one complete XML template per item:
+`qti-choice.xml` or `qti-text-entry.xml`.
