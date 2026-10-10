@@ -2,5 +2,6 @@
 **/*.quarto_ipynb
 /_output/
 /.venv/
+/venv/
 
 /.luarc.json
