@@ -10,34 +10,49 @@ question. Each question's `type` selects its interaction template.
 quarto add <owner>/<repo>
 ```
 
-This copies `_extensions/qti/` into your project. Rendering needs nothing else.
-Use the format as `format: qti-docbook`.
+This copies `_extensions/qti/` into your project. Base rendering needs nothing
+else. Use the format as `format: qti-docbook`.
 
 ## Use
 
-Define the assessment in the root `qti` YAML field: an optional `identifier` and
-`title`, and a list of `questions`. See [example.qmd](example.qmd) for a complete
-document.
+Keep an exam's metadata in a JSON sidecar and include it from that document's
+front matter. `questions.json` uses the extension's JSON Schema, so VS Code can
+validate and complete the question structure while editing the data file.
 
 ```yaml
-qti:
-  identifier: FRACTIONS_QUIZ
-  title: "Fractions & decimals"
-  questions:
-    - type: choice
-      identifier: ADD_FRACTIONS
-      prompt: "What is 1/2 + 1/4?"
-      choices:
-        - identifier: A
-          text: 1/4
-        - identifier: B
-          text: 3/4
-          correct: true
-    - type: text_entry
-      identifier: HALF_AS_DECIMAL
-      prompt: "Write 1/2 as a decimal:"
-      correct: "0.5"
+---
+format: qti-docbook
+metadata-files:
+  - questions.json
+---
 ```
+
+The JSON file contains the `qti` object. Identifiers and titles are optional:
+
+```json
+{
+  "$schema": "./_extensions/qti/schema/qti.schema.json",
+  "qti": {
+    "title": "Fractions & decimals",
+    "questions": [
+      {
+        "type": "choice",
+        "prompt": "What is 1/2 + 1/4?",
+        "choices": [{ "text": "1/4" }, { "text": "3/4", "correct": true }]
+      },
+      {
+        "type": "text_entry",
+        "prompt": "Write 1/2 as a decimal:",
+        "correct": "0.5"
+      }
+    ]
+  }
+}
+```
+
+See [example.qmd](example.qmd) and [questions.json](questions.json) for the
+complete example. Each document can include its own metadata file, allowing
+several exams in one project.
 
 Every question has a `type` and a `prompt`, and an optional `identifier` and
 `title`:
@@ -131,9 +146,9 @@ project:
   post-render: _extensions/qti/validation/validate_output.py
 ```
 
-- **pre-render** validates each document's `qti` front matter against the JSON
-  Schema and stops the render on an error. Documents without a `qti` key are
-  skipped.
+- **pre-render** validates each document's `qti` data, including data loaded
+  through `metadata-files`, against the JSON Schema and stops the render on an
+  error. Documents without a `qti` key are skipped.
 - **post-render** validates every generated QTI test against the official IMS
   QTI 3.0 XSD using `lxml`, and every item file it references. A missing item
   file fails. Other XML files are skipped.
@@ -160,4 +175,4 @@ licence notices.
 
 This repository renders every `.qmd` file with the hooks above, so
 `quarto render` checks the extension itself. Keep one question of each
-interaction type in `example.qmd`.
+interaction type in `questions.json`.

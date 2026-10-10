@@ -1,0 +1,32 @@
+{
+    "$schema": "./_extensions/qti/schema/qti.schema.json",
+    "qti": {
+        "title": "Meine coole Fragen",
+        "questions": [
+            {
+                "type": "choice",
+                "title": "Adding fractions",
+                "prompt": "Was ist 1/2 + 1/4?",
+                "choices": [
+                    { "text": "1/4" },
+                    { "text": "3/4", "correct": true },
+                    { "text": "1" }
+                ]
+            },
+            {
+                "type": "text_entry",
+                "title": "Fraction to decimal",
+                "prompt": "Schreibe 1/2 als Dezimalzahl:",
+                "correct": "0.5"
+            },
+            {
+                "type": "choice",
+                "prompt": "Welche Aussage ist richtig?",
+                "choices": [
+                    { "text": "1/3 < 1/2", "correct": true },
+                    { "text": "1/3 > 1/2" }
+                ]
+            }
+        ]
+    }
+}

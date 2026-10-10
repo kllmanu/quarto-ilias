@@ -48,12 +48,38 @@ def front_matter(path):
     return (yaml.safe_load(match.group(1)) if match else None) or {}
 
 
+def document_metadata(path):
+    data = front_matter(path)
+    metadata_files = data.get("metadata-files", [])
+    if isinstance(metadata_files, str):
+        metadata_files = [metadata_files]
+    if not isinstance(metadata_files, list):
+        raise ValueError("metadata-files must be a path or a list of paths")
+
+    for name in metadata_files:
+        metadata_path = path.parent / name
+        try:
+            contents = metadata_path.read_text()
+            included = json.loads(contents) if metadata_path.suffix.lower() == ".json" else yaml.safe_load(contents)
+        except (OSError, json.JSONDecodeError, yaml.YAMLError) as error:
+            raise ValueError(f"cannot read metadata file {metadata_path}: {error}") from error
+        if not isinstance(included, dict):
+            raise ValueError(f"metadata file {metadata_path} must contain a mapping")
+        data = included | data
+    return data
+
+
 def main():
     validator = build_validator()
     failed = False
 
     for path in input_files():
-        data = front_matter(path)
+        try:
+            data = document_metadata(path)
+        except ValueError as error:
+            failed = True
+            print(f"{path}: {error}", file=sys.stderr)
+            continue
         if "qti" not in data:
             continue
         error = best_match(validator.iter_errors(data))
