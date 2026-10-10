@@ -72,10 +72,16 @@ periods, because it becomes part of the item paths.
 Identifiers begin with a letter or underscore and may contain letters, digits,
 underscores, periods and hyphens, because a question's identifier is also its
 file name. They must be unique within a document, but two documents may reuse
-the same ones. Question identifiers default to `ITEM_1`, `ITEM_2` and so on,
-choice identifiers to `CHOICE_1`, `CHOICE_2`, and the test's to `TEST_1`. Quote
-choice text that YAML could interpret as a boolean or number, such as `"Yes"`,
-`"No"` or `"1"`.
+the same ones. Question identifiers are optional; when omitted, one is generated
+from the question title, or from its prompt if there is no title. The question
+position is included so repeated titles still produce unique identifiers.
+Choice identifiers default to `CHOICE_1`, `CHOICE_2`, and so on. The test
+identifier is also optional. When omitted, it is generated deterministically
+from the assessment title, or from the output file name if there is no title.
+Generated identifiers replace characters outside the QTI identifier pattern
+with underscores and are valid even when the source text starts with a digit.
+Quote choice text that YAML could interpret as a boolean or number, such as
+`"Yes"`, `"No"` or `"1"`.
 
 ## Content packages
 

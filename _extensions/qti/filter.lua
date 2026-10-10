@@ -55,7 +55,7 @@ function Pandoc(doc)
         files.write(file.path, file.content)
     end
 
-    local context = xml.escape_values(assessment_test.context(qti, items))
+    local context = xml.escape_values(assessment_test.context(qti, items, exam_folder))
     local output = template.render(template_file("test", "test"), context)
     return pandoc.Pandoc({ pandoc.RawBlock("docbook", output) }, doc.meta)
 end
