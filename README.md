@@ -6,8 +6,23 @@ question. Each question's `type` selects its interaction template.
 
 ## Install
 
+Start a new assessment project with the starter template:
+
 ```sh
-quarto add <owner>/<repo>
+quarto use template kllmanu/quarto-qti
+```
+
+Choose a directory name when prompted. Quarto copies the extension,
+`_quarto.yml`, and `questions.json`, and renames `template.qmd` to match the
+directory name. Edit `questions.json`, then run `quarto render` from the new
+directory. Python 3 with `venv` and `pip` support is required; the setup hook
+installs validation dependencies automatically on first render. The validated
+assessment XML, item files, and content package zip are written to `_output/`.
+
+To add only the extension to an existing project instead:
+
+```sh
+quarto add kllmanu/quarto-qti
 ```
 
 This copies `_extensions/qti/` into your project. Base rendering needs nothing
@@ -50,7 +65,7 @@ The JSON file contains the `qti` object. Identifiers and titles are optional:
 }
 ```
 
-See [example.qmd](example.qmd) and [questions.json](questions.json) for the
+See [template.qmd](template.qmd) and [questions.json](questions.json) for the
 complete example. Each document can include its own metadata file, allowing
 several exams in one project.
 
@@ -190,6 +205,10 @@ MathML, which this extension never emits. The IMS schemas keep their original
 licence notices.
 
 ## Development
+
+The repository also serves as a [Quarto starter template](https://quarto.org/docs/extensions/starter-templates.html).
+`template.qmd` is the starter document; `.quartoignore` excludes the development
+example, rendered output, and Python bytecode from generated projects.
 
 This repository renders every `.qmd` file with the hooks above, so
 `quarto render` checks the extension itself. Keep one question of each

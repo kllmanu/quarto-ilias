@@ -1,0 +1,5 @@
+---
+format: qti-docbook
+metadata-files:
+  - questions.json
+---
