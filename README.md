@@ -48,6 +48,13 @@ Item identifiers default to `ITEM_1`; choice identifiers default to
 Quote choice text that YAML could interpret as a boolean or number, such as
 `"Yes"`, `"No"`, or `"1"`.
 
-The JSON Schema at `_extensions/qti/qti.schema.json` describes the supported
-interaction types. The filter selects one complete XML template per item:
-`qti-choice.xml` or `qti-text-entry.xml`.
+The JSON Schema at `_extensions/qti/schema/qti.schema.json` describes the
+supported interaction types.
+
+## Adding an interaction type
+
+Each type lives in `_extensions/qti/interactions/<type>/` as `<type>.lua`
+(returns `context(qti)`, the template values) and `<type>.xml` (a complete QTI
+document template). Register the module in `INTERACTIONS` in
+`_extensions/qti/qti.lua`, and add its shape to the schema. Values are
+XML-escaped by the dispatcher, so modules return plain strings.

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=./_extensions/qti/qti.schema.json
+# yaml-language-server: $schema=./_extensions/qti/schema/qti.schema.json
 title: Adding fractions
 format: qti-docbook
 qti:
