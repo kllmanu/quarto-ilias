@@ -22,8 +22,10 @@ try:
     from referencing import Registry, Resource
     from referencing.jsonschema import DRAFT202012
 except ImportError as error:
-    sys.exit(f"Missing Python package '{error.name}'. Install with: "
-             f"pip install -r {HERE / 'requirements.txt'}")
+    # Validation is optional, so a missing package must not block the render.
+    print(f"Skipping front matter validation: missing Python package '{error.name}'. "
+          f"Install with: pip install -r {HERE / 'requirements.txt'}", file=sys.stderr)
+    sys.exit(0)
 
 
 def retrieve(uri):

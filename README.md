@@ -86,10 +86,10 @@ project:
   Schema and stops the render on an error. Documents without a `qti` key are
   skipped.
 - **post-render** validates every generated QTI XML file against the official
-  IMS QTI 3.0 XSD with `xmllint`. Other XML files are skipped.
+  IMS QTI 3.0 XSD using `lxml`. Other XML files are skipped.
 
-Both hooks need Python 3, and the post-render hook needs `xmllint` (libxml2) on
-the `PATH`:
+Both hooks need Python 3 and a few packages from `requirements.txt` (`jsonschema`,
+`pyyaml` and `lxml`):
 
 ```sh
 python3 -m venv .venv
@@ -97,7 +97,9 @@ python3 -m venv .venv
 PATH="$PWD/.venv/bin:$PATH" quarto render
 ```
 
-Without those dependencies, a hook stops with a message naming what is missing.
+If a dependency is missing, the affected hook prints a message naming it and
+skips its check, and the render continues. Invalid front matter or invalid XML
+still fails the render.
 
 The XSD is validated offline. `validation/catalog.xml` maps the schemas it
 imports to local copies in `validation/xsd/`, with a small stub standing in for
