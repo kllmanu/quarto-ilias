@@ -1,8 +1,9 @@
-# Quarto QTI 3.0 Extension
+# Quarto QTI 1.2.1 Extension
 
-This extension renders a Quarto document as an IMS QTI 3.0 assessment: one
-`qti-assessment-test` file that references one `qti-assessment-item` file per
-question. Each question's `type` selects its interaction template.
+This extension renders a Quarto document as an IMS QTI 1.2.1 question collection
+for ILIAS 11: one `questestinterop` XML file containing all questions as `item`
+elements. Each question's `type` selects its interaction template. QTI 3.0 is
+no longer emitted.
 
 ## Install
 
@@ -17,7 +18,7 @@ Choose a directory name when prompted. Quarto copies the extension,
 directory name. Edit `questions.json`, then run `quarto render` from the new
 directory. Python 3 with `venv` and `pip` support is required; the setup hook
 installs validation dependencies automatically on first render. The validated
-assessment XML, item files, and content package zip are written to `_output/`.
+question XML and portable XML/DTD zip are written to `_output/`.
 
 To add only the extension to an existing project instead:
 
@@ -76,6 +77,14 @@ Every question has a `type` and a `prompt`, and an optional `identifier` and
   `identifier`. Mark exactly one `correct: true`.
 - **`text_entry`** needs a `correct` string.
 
+`choice` exports as ILIAS `assSingleChoice`, with one selection, one point for
+the correct choice, and zero for other choices. Answer order is fixed.
+`text_entry` exports as `assClozeTest` with one string gap and a case-sensitive
+correct answer worth one point. It is not a manually graded essay or a numeric
+gap. The prompt becomes the question text and the gap is the answer field.
+The author metadata defaults to `Quarto QTI`, and the content editing mode is
+`default` (ILIAS's regular editor).
+
 Render with:
 
 ```sh
@@ -84,44 +93,61 @@ quarto render quiz.qmd --to qti-docbook
 
 Before each render, the `clean_output.py` pre-render hook clears the configured
 project output directory, including when Quarto is invoked with `--no-clean`.
-This writes `quiz.xml` (the test) and a `quiz/` folder holding one
-`<identifier>.xml` per question. The test refers to the items by relative path,
-such as `quiz/ADD_FRACTIONS.xml`. A project with an `output-dir` gets all of them
-there.
+This writes `quiz.xml` with all questions embedded. A project with an
+`output-dir` gets its XML and optional zip there. No separate item files or
+assessment references are produced.
 
-Each document gets its own folder, named after its output file, so one project can
-hold several exams without their items colliding:
+Each document gets its own output file, so one project can hold several
+question collections:
 
 ```
 _output/
-  quiz.xml   quiz/ADD_FRACTIONS.xml …   quiz.zip
-  exam2.xml  exam2/ADD_FRACTIONS.xml …  exam2.zip
+  quiz.xml   quiz.zip
+  exam2.xml  exam2.zip
 ```
 
 The output file name may contain only letters, digits, underscores, hyphens and
-periods, because it becomes part of the item paths.
+periods.
 
 Identifiers begin with a letter or underscore and may contain letters, digits,
-underscores, periods and hyphens, because a question's identifier is also its
-file name. They must be unique within a document, but two documents may reuse
+underscores, periods and hyphens. They must be unique within a document, but two documents may reuse
 the same ones. Question identifiers are optional; when omitted, one is generated
 from the question title, or from its prompt if there is no title. The question
 position is included so repeated titles still produce unique identifiers.
-Choice identifiers default to `CHOICE_1`, `CHOICE_2`, and so on. The test
+In exported XML, item `ident` values use `il_0_qst_1`, `il_0_qst_2`, and so on.
+ILIAS 11 requires this pattern to derive a non-null source installation ID for
+text-gap imports, even without images. Authored or generated question identifiers
+are retained separately in the `externalId` metadata; question titles are unchanged.
+Choice identifiers default to `CHOICE_1`, `CHOICE_2`, and so on. The collection
 identifier is also optional. When omitted, it is generated deterministically
-from the assessment title, or from the output file name if there is no title.
+from the collection title, or from the output file name if there is no title.
+The collection title and identifier do not create or configure an ILIAS test
+or rename the destination pool. They are not emitted in question-only XML:
+a root `qticomment` followed by formatting whitespace triggers a parent-lookup
+bug in ILIAS 11's importer. Question titles and identifiers are still emitted.
 Generated identifiers replace characters outside the QTI identifier pattern
 with underscores and are valid even when the source text starts with a digit.
 Quote choice text that YAML could interpret as a boolean or number, such as
 `"Yes"`, `"No"` or `"1"`.
 
-## Content packages
+## ILIAS Import
 
-Importers usually expect a QTI content package. The optional `package.py`
-post-render hook writes `<name>.zip` beside each test. It holds `imsmanifest.xml`
-at the root, the test, and the items the test references. The manifest follows
-the QTI 3.0 content packaging profile and lists the test with a dependency on
-each item. It needs only Python 3 and no extra packages.
+In an existing ILIAS 11 test question pool, open the questions list, select
+Import, and upload the generated XML. Select the questions to import, then
+check their prompts, correct answers, points, and previews. Add the imported
+questions to a test and configure delivery settings within ILIAS.
+
+The templates target the [ILIAS 11 QTI 1.2 importers](https://github.com/ILIAS-eLearning/ILIAS/tree/release_11/components/ILIAS/TestQuestionPool/classes/import/qti12).
+Local tests verify the QTI 1.2.1 DTD and the importer-specific metadata and scoring
+structure; an actual import into your ILIAS installation still needs verification.
+
+## Portable Bundles
+
+The optional `package.py` post-render hook writes `<name>.zip` beside each XML.
+It holds the question XML and `ims_qtiasiv1p2p1.dtd` at the root. It needs only
+Python 3 and no extra packages. This is a portable bundle, not an ILIAS native
+test/pool export ZIP or an IMS content package. Import the XML into ILIAS, not
+this ZIP. The old QTI 3 manifest and per-item dependencies are no longer used.
 
 ```yaml
 project:
@@ -133,8 +159,8 @@ project:
 ```
 
 List it after the validation hook: Quarto stops at the first failing hook, so an
-invalid exam is never packaged. Packaging also fails, leaving no zip, if the test
-references a missing item or a path outside the output folder.
+invalid question collection is never packaged. Packaging also rejects an empty
+collection, duplicate item identifiers, or a missing DTD.
 
 The JSON Schema entry point is `_extensions/qti/schema/qti.schema.json`. It
 describes the assessment, `schema/question.schema.json` picks the schema for each
@@ -174,9 +200,10 @@ project:
 - **pre-render** validates each document's `qti` data, including data loaded
   through `metadata-files`, against the JSON Schema and stops the render on an
   error. Documents without a `qti` key are skipped.
-- **post-render** validates every generated QTI test against the official IMS
-  QTI 3.0 XSD using `lxml`, and every item file it references. A missing item
-  file fails. Other XML files are skipped.
+- **post-render** validates every generated QTI question collection against the
+  IMS QTI 1.2.1 DTD using `lxml`. It also checks ILIAS question types, title and
+  author metadata, response references, choice identifiers, one-point scoring,
+  and case-sensitive text gaps. Other XML files are skipped.
 
 The hooks need Python 3 with `venv` and `pip` support. The standalone setup hook
 installs `jsonschema`, `pyyaml` and `lxml` from
@@ -199,10 +226,10 @@ Initial setup requires access to the Python package index. Subsequent renders
 need no network access. Setup failures, missing dependencies, invalid front
 matter and invalid XML stop the render instead of skipping validation.
 
-The XSD is validated offline. `validation/catalog.xml` maps the schemas it
-imports to local copies in `validation/xsd/`, with a small stub standing in for
-MathML, which this extension never emits. The IMS schemas keep their original
-licence notices.
+DTD validation runs offline using `validation/ims_qtiasiv1p2p1.dtd`. The final
+IMS DTD (14 February 2003) is preserved unchanged from
+[Pyslet's QTI 1.2.1 fixtures](https://github.com/swl10/pyslet/blob/master/unittests/data_imsqtiv1p2p1/ims_qtiasiv1p2p1.dtd).
+XML external entities are not expanded. The old QTI 3 XSD and catalog are removed.
 
 ## Development
 
@@ -213,3 +240,11 @@ example, rendered output, and Python bytecode from generated projects.
 This repository renders every `.qmd` file with the hooks above, so
 `quarto render` checks the extension itself. Keep one question of each
 interaction type in `questions.json`.
+
+Run the export regression tests with:
+
+```sh
+python3 _extensions/qti/test/test_export.py
+```
+
+The setup hook must have run once before these tests; they reuse its environment.

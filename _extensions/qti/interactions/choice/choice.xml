@@ -1,21 +1,52 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="$identifier$"
-    title="$title$" adaptive="false" time-dependent="false">
-    <qti-response-declaration identifier="RESPONSE" cardinality="single" base-type="identifier">
-        <qti-correct-response>
-            <qti-value>$correct$</qti-value>
-        </qti-correct-response>
-    </qti-response-declaration>
-    <qti-outcome-declaration identifier="SCORE" cardinality="single" base-type="float">
-        <qti-default-value>
-            <qti-value>0</qti-value>
-        </qti-default-value>
-    </qti-outcome-declaration>
-    <qti-item-body>
-        <qti-choice-interaction response-identifier="RESPONSE" shuffle="false" max-choices="1">
-            <qti-prompt>$prompt$</qti-prompt> $for(choices)$ <qti-simple-choice
-                identifier="$it.identifier$">$it.text$</qti-simple-choice> $endfor$ </qti-choice-interaction>
-    </qti-item-body>
-    <qti-response-processing
-        template="https://purl.imsglobal.org/spec/qti/v3p0/rptemplates/match_correct" />
-</qti-assessment-item>
+<item ident="$identifier$" title="$title$" maxattempts="0">
+    <itemmetadata>
+        <qtimetadata>
+            <qtimetadatafield>
+                <fieldlabel>externalId</fieldlabel>
+                <fieldentry>$external_id$</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+                <fieldlabel>QUESTIONTYPE</fieldlabel>
+                <fieldentry>assSingleChoice</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+                <fieldlabel>AUTHOR</fieldlabel>
+                <fieldentry>Quarto QTI</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+                <fieldlabel>additional_cont_edit_mode</fieldlabel>
+                <fieldentry>default</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+                <fieldlabel>singleline</fieldlabel>
+                <fieldentry>1</fieldentry>
+            </qtimetadatafield>
+        </qtimetadata>
+    </itemmetadata>
+    <presentation label="$title$">
+        <flow>
+            <material>
+                <mattext texttype="text/plain">$prompt$</mattext>
+            </material>
+            <response_lid ident="RESPONSE" rcardinality="Single">
+                <render_choice shuffle="No"> $for(choices)$ <response_label ident="$it.identifier$">
+                        <material>
+                            <mattext texttype="text/plain">$it.text$</mattext>
+                        </material>
+                    </response_label>
+                    $endfor$ </render_choice>
+            </response_lid>
+        </flow>
+    </presentation>
+    <resprocessing>
+        <outcomes>
+            <decvar varname="SCORE" vartype="Decimal" defaultval="0" minvalue="0" maxvalue="1" />
+        </outcomes>
+        $for(choices)$ <respcondition continue="Yes">
+            <conditionvar>
+                <varequal respident="RESPONSE">$it.identifier$</varequal>
+            </conditionvar>
+            <setvar varname="SCORE" action="Add">$it.points$</setvar>
+        </respcondition>
+        $endfor$ </resprocessing>
+</item>

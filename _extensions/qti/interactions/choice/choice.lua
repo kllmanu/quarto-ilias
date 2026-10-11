@@ -15,6 +15,7 @@ function M.context(question, index)
         table.insert(context.choices, {
             identifier = identifier,
             text = meta.field(choice, "text", ""),
+            points = meta.field(choice, "correct", "false") == "true" and "1" or "0",
         })
     end
 

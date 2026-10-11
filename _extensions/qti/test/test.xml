@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<qti-assessment-test xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="$identifier$"
-    title="$title$">
-    <qti-test-part identifier="PART_1" navigation-mode="nonlinear" submission-mode="individual">
-        <qti-assessment-section identifier="SECTION_1" title="$title$" visible="true"> $for(items)$ <qti-assessment-item-ref
-                identifier="$it.identifier$" href="$it.href$" /> $endfor$ </qti-assessment-section>
-    </qti-test-part>
-</qti-assessment-test>
+<!DOCTYPE questestinterop SYSTEM "ims_qtiasiv1p2p1.dtd">
+<questestinterop>
+    $for(items)$
+    $it.content$
+    $endfor$
+</questestinterop>

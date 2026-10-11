@@ -26,36 +26,31 @@ local function build_item(question, index)
     assert(interaction, "Unknown question type: " .. interaction_type)
 
     local context = interaction.context(question, index)
+    local identifier = context.identifier
+    context.external_id = identifier
+    context.identifier = "il_0_qst_" .. index
     local folder = "interactions/" .. interaction_type
     local output = xml.format(template.render(template_file(folder, interaction_type), xml.escape_values(context)))
-    return context.identifier, output
+    return identifier, output
 end
 
 function Pandoc(doc)
     local qti = doc.meta.qti
     local output_file = quarto.doc.output_file
-    local output_dir = pandoc.path.directory(output_file)
-    -- Items go into a folder named after the test, so several exams can share one output directory.
     local exam_folder = files.exam_folder_name(pandoc.path.filename(output_file))
 
-    local items, pending, seen = {}, {}, {}
+    local items, seen = {}, {}
     for index, question in ipairs(qti.questions) do
         local identifier, output = build_item(question, index)
-        local href = exam_folder .. "/" .. files.item_file_name(identifier)
 
         assert(not seen[identifier], "Duplicate question identifier: " .. identifier)
         seen[identifier] = true
 
-        table.insert(pending, { path = output_dir .. "/" .. href, content = output })
-        table.insert(items, { identifier = identifier, href = href })
+        table.insert(items, { identifier = identifier, content = output })
     end
 
-    -- Write only after every question passed its guards, so a failure leaves no partial output.
-    for _, file in ipairs(pending) do
-        files.write(file.path, file.content)
-    end
-
-    local context = xml.escape_values(assessment_test.context(qti, items, exam_folder))
+    local context = xml.escape_values(assessment_test.context(qti, {}, exam_folder))
+    context.items = items
     local output = xml.format(template.render(template_file("test", "test"), context))
     return pandoc.Pandoc({ pandoc.RawBlock("docbook", output) }, doc.meta)
 end

@@ -152,7 +152,7 @@ function M.format(document)
     local output = {}
     for _, child in ipairs(root.children) do
         if type(child) == "string" then
-            if child:match("^<%?xml") then
+            if child:match("^<%?xml") or child:match("^<!DOCTYPE") then
                 table.insert(output, child)
             elseif child:match("%S") then
                 table.insert(output, child)
