@@ -185,13 +185,13 @@ steps.
 To cross-check an output file with `xmllint`:
 
 ```sh
-xmllint --noout --nonet --path _extensions/qti/validation --valid _output/example.xml
+xmllint --noout --nonet --path _extensions/qti --valid _output/example.xml
 ```
 
-DTD validation uses the local `validation/ims_qtiasiv1p2p1.dtd` file and disables
-network access. The final IMS DTD (14 February 2003) is preserved unchanged from
+DTD validation uses the local `_extensions/qti/qti.dtd` file and disables
+network access. The output's DOCTYPE refers to `qti.dtd`; `catalog.xml` maps it
+to the extension's copy for VS Code. The final IMS DTD (14 February 2003) is preserved unchanged from
 [Pyslet's QTI 1.2.1 fixtures](https://github.com/swl10/pyslet/blob/master/unittests/data_imsqtiv1p2p1/ims_qtiasiv1p2p1.dtd).
-The old QTI 3 XSD and catalog are removed.
 
 ## Development
 

@@ -21,8 +21,8 @@ from lxml import etree
 
 ROOT = Path(__file__).resolve().parent
 SCHEMA_FILE = ROOT / "qti.schema.json"
-DTD_FILE = ROOT / "validation" / "ims_qtiasiv1p2p1.dtd"
-DOCTYPE = '<!DOCTYPE questestinterop SYSTEM "ims_qtiasiv1p2p1.dtd">'
+DTD_FILE = ROOT / "qti.dtd"
+DOCTYPE = '<!DOCTYPE questestinterop SYSTEM "qti.dtd">'
 AUTHOR = "Quarto QTI"
 SAFE_FILE_STEM = re.compile(r"^[A-Za-z0-9_.-]+$")
 
