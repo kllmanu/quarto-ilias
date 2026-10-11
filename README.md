@@ -16,9 +16,9 @@ quarto use template kllmanu/quarto-qti
 Choose a directory name when prompted. Quarto copies the extension,
 `_quarto.yml`, and `questions.json`, and renames `template.qmd` to match the
 directory name. Edit `questions.json`, then run `quarto render` from the new
-directory. Python 3 with `venv` and `pip` support is required; the setup hook
-installs validation dependencies automatically on first render. The validated
-question XML files are written to `_output/`.
+directory. The `jsonschema` CLI and `xmllint` must be installed and available on
+`PATH` for validation. The validated question XML files are written to
+`_output/`.
 
 To add only the extension to an existing project instead:
 
@@ -136,8 +136,8 @@ check their prompts, correct answers, points, and previews. Add the imported
 questions to a test and configure delivery settings within ILIAS.
 
 The templates target the [ILIAS 11 QTI 1.2 importers](https://github.com/ILIAS-eLearning/ILIAS/tree/release_11/components/ILIAS/TestQuestionPool/classes/import/qti12).
-Local tests verify the QTI 1.2.1 DTD and the importer-specific metadata and scoring
-structure; an actual import into your ILIAS installation still needs verification.
+The DTD validates QTI structure, but an actual import into your ILIAS
+installation is still needed to verify importer-specific behavior.
 
 The JSON Schema entry point is `_extensions/qti/schema/qti.schema.json`. It
 describes the assessment, `schema/question.schema.json` picks the schema for each
@@ -157,53 +157,43 @@ and the filter keeps running.
 
 ## Validation
 
-Python hooks and their environment helper live in `_extensions/qti/scripts/`.
-Configure the hooks in your
-project's `_quarto.yml`:
+The render hooks in `_extensions/qti/scripts/` use the `jsonschema` and
+`xmllint` command-line tools. Configure them in your project's `_quarto.yml`:
 
 ```yaml
 project:
   pre-render:
-    - _extensions/qti/scripts/setup_environment.py
-    - _extensions/qti/scripts/validate_front_matter.py
-  post-render: _extensions/qti/scripts/validate_output.py
+    - _extensions/qti/scripts/validate_front_matter.sh
+  post-render: _extensions/qti/scripts/validate_output.sh
 ```
 
-- **setup_environment** creates a private Python environment and installs the
-  extension's dependencies on first use. Keep it first in the pre-render list.
-- **pre-render** validates each document's `qti` data, including data loaded
-  through `metadata-files`, against the JSON Schema and stops the render on an
-  error. Documents without a `qti` key are skipped.
-- **post-render** validates every generated QTI question collection against the
-  IMS QTI 1.2.1 DTD using `lxml`. It also checks ILIAS question types, title and
-  author metadata, response references, choice identifiers, one-point scoring,
-  and case-sensitive text gaps. Other XML files are skipped.
+- **pre-render** validates `questions.json` against the assessment JSON Schema
+  and stops the render on an error. Set `QTI_QUESTIONS_FILE` if the file has a
+  different path. For projects with multiple assessment JSON files, run the
+  `jsonschema validate` command for each file.
+- **post-render** validates generated `questestinterop` XML against the IMS QTI
+  1.2.1 DTD. Other XML files are skipped. This checks XML syntax and DTD
+  structure; it does not perform the additional ILIAS profile checks previously
+  handled by the Python validator.
 
-The hooks need Python 3 with `venv` and `pip` support. The standalone setup hook
-installs `jsonschema`, `pyyaml` and `lxml` from
-`_extensions/qti/requirements.txt`; no manual installation or activation is
-needed. Just render normally:
+Install the `jsonschema` CLI and `xmllint` yourself; no Python environment or
+package setup is needed. Then render normally:
 
 ```sh
 quarto render
 ```
 
-The environment lives under the user's cache directory (`~/.cache/quarto-qti`
-on Linux, respecting `XDG_CACHE_HOME`; `~/Library/Caches/quarto-qti` on macOS;
-`%LOCALAPPDATA%/quarto-qti` on Windows). It is reused across projects with the
-same Python interpreter and requirements, and a new environment is created
-when either changes. Nothing is installed into the user's global Python or
-project. Validators launch themselves with the cached interpreter; they never
-install dependencies.
+To run the checks manually:
 
-Initial setup requires access to the Python package index. Subsequent renders
-need no network access. Setup failures, missing dependencies, invalid front
-matter and invalid XML stop the render instead of skipping validation.
+```sh
+jsonschema validate _extensions/qti/schema/qti.schema.json questions.json
+xmllint --noout --nonet --path _extensions/qti/validation --valid _output/example.xml
+```
 
-DTD validation runs offline using `validation/ims_qtiasiv1p2p1.dtd`. The final
-IMS DTD (14 February 2003) is preserved unchanged from
+DTD validation uses the local `validation/ims_qtiasiv1p2p1.dtd` file and disables
+network access. The final IMS DTD (14 February 2003) is preserved unchanged from
 [Pyslet's QTI 1.2.1 fixtures](https://github.com/swl10/pyslet/blob/master/unittests/data_imsqtiv1p2p1/ims_qtiasiv1p2p1.dtd).
-XML external entities are not expanded. The old QTI 3 XSD and catalog are removed.
+The old QTI 3 XSD and catalog are removed.
 
 ## Development
 
@@ -214,11 +204,3 @@ example, rendered output, and Python bytecode from generated projects.
 This repository renders every `.qmd` file with the hooks above, so
 `quarto render` checks the extension itself. Keep one question of each
 interaction type in `questions.json`.
-
-Run the export regression tests with:
-
-```sh
-python3 _extensions/qti/test/test_export.py
-```
-
-The setup hook must have run once before these tests; they reuse its environment.
