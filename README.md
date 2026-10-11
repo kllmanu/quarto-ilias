@@ -1,9 +1,11 @@
 # Quarto QTI 1.2.1 Extension
 
-This extension renders a Quarto document as an IMS QTI 1.2.1 question collection
+This extension converts question JSON into an IMS QTI 1.2.1 question collection
 for ILIAS 11: one `questestinterop` XML file containing all questions as `item`
-elements. Each question's `type` selects its interaction template. QTI 3.0 is
-no longer emitted.
+elements. The conversion is done by a Python script,
+`_extensions/qti/qti.py`, which validates the input against the JSON Schema,
+builds the XML, and validates the result against the QTI 1.2.1 DTD before
+writing it. It runs as a Quarto pre-render hook or standalone.
 
 ## Install
 
@@ -16,9 +18,10 @@ quarto use template kllmanu/quarto-qti
 Choose a directory name when prompted. Quarto copies the extension,
 `_quarto.yml`, and `questions.json`, and renames `template.qmd` to match the
 directory name. Edit `questions.json`, then run `quarto render` from the new
-directory. The `jsonschema` CLI and `xmllint` must be installed and available on
-`PATH` for validation. The validated question XML files are written to
-`_output/`.
+directory. Python 3 with the packages in `_extensions/qti/requirements.txt`
+must be available to Quarto (`pip install -r _extensions/qti/requirements.txt`;
+set `QUARTO_PYTHON` to pick a specific interpreter or virtual environment).
+The validated question XML files are written to `_output/`.
 
 To add only the extension to an existing project instead:
 
@@ -26,8 +29,8 @@ To add only the extension to an existing project instead:
 quarto add kllmanu/quarto-qti
 ```
 
-This copies `_extensions/qti/` into your project. Base rendering needs nothing
-else. Use the format as `format: qti-docbook`.
+This copies `_extensions/qti/` into your project. Add the hook to your
+`_quarto.yml` (see [Validation](#validation)) and use `format: qti-html`.
 
 ## Use
 
@@ -37,7 +40,7 @@ validate and complete the question structure while editing the data file.
 
 ```yaml
 ---
-format: qti-docbook
+format: qti-html
 metadata-files:
   - questions.json
 ---
@@ -88,10 +91,17 @@ The author metadata defaults to `Quarto QTI`, and the content editing mode is
 Render with:
 
 ```sh
-quarto render quiz.qmd --to qti-docbook
+quarto render
 ```
 
-Rendering writes `quiz.xml` with all questions embedded. A project with an
+or convert a question file directly, without Quarto:
+
+```sh
+python3 _extensions/qti/qti.py questions.json -o quiz.xml
+```
+
+Rendering writes `quiz.xml` (named after `quiz.qmd`) with all questions
+embedded, next to a `quiz.html` preview page. A project with an
 `output-dir` gets its XML there. No separate item files or
 assessment references are produced.
 
@@ -117,16 +127,14 @@ ILIAS 11 requires this pattern to derive a non-null source installation ID for
 text-gap imports, even without images. Authored or generated question identifiers
 are retained separately in the `externalId` metadata; question titles are unchanged.
 Choice identifiers default to `CHOICE_1`, `CHOICE_2`, and so on. The collection
-identifier is also optional. When omitted, it is generated deterministically
-from the collection title, or from the output file name if there is no title.
-The collection title and identifier do not create or configure an ILIAS test
+title and identifier are optional and do not create or configure an ILIAS test
 or rename the destination pool. They are not emitted in question-only XML:
 a root `qticomment` followed by formatting whitespace triggers a parent-lookup
 bug in ILIAS 11's importer. Question titles and identifiers are still emitted.
 Generated identifiers replace characters outside the QTI identifier pattern
 with underscores and are valid even when the source text starts with a digit.
 Quote choice text that YAML could interpret as a boolean or number, such as
-`"Yes"`, `"No"` or `"1"`.
+`"Yes"`, `"No"` or `"1"`, when writing questions in YAML.
 
 ## ILIAS Import
 
@@ -135,7 +143,7 @@ Import, and upload the generated XML. Select the questions to import, then
 check their prompts, correct answers, points, and previews. Add the imported
 questions to a test and configure delivery settings within ILIAS.
 
-The templates target the [ILIAS 11 QTI 1.2 importers](https://github.com/ILIAS-eLearning/ILIAS/tree/release_11/components/ILIAS/TestQuestionPool/classes/import/qti12).
+The generated XML targets the [ILIAS 11 QTI 1.2 importers](https://github.com/ILIAS-eLearning/ILIAS/tree/release_11/components/ILIAS/TestQuestionPool/classes/import/qti12).
 The DTD validates QTI structure, but an actual import into your ILIAS
 installation is still needed to verify importer-specific behavior.
 
@@ -145,48 +153,38 @@ question's type, and shared fields live in `schema/item.schema.json`.
 
 ## Adding an interaction type
 
-Each type lives in `_extensions/qti/interactions/<type>/` as `<type>.lua`
-(returns `context(question, index)`, the template values), `<type>.xml` (a
-complete QTI item template), and `<type>.schema.json` (the question's shape).
-Register the module in `INTERACTIONS` in `_extensions/qti/filter.lua`, and add the
-type to the `enum` and an `if/then` branch in `schema/question.schema.json`.
-Values are XML-escaped by the dispatcher, so modules return plain strings.
-
-Filter guards must use `assert`, not `error`: under Quarto, `error()` only logs
-and the filter keeps running.
+Write a `build_<type>(parent, question, index)` function in
+`_extensions/qti/qti.py` (use `_item()` for the shared item skeleton) and
+register it in `BUILDERS`. Add `interactions/<type>/<type>.schema.json` for the
+question's shape, and add the type to the `enum` and an `if/then` branch in
+`schema/question.schema.json`. lxml escapes text and attribute values.
 
 ## Validation
 
-The render hooks in `_extensions/qti/scripts/` use the `jsonschema` and
-`xmllint` command-line tools. Configure them in your project's `_quarto.yml`:
+`qti.py` runs as a pre-render hook in your project's `_quarto.yml`:
 
 ```yaml
 project:
   pre-render:
-    - _extensions/qti/scripts/validate_front_matter.sh
-  post-render: _extensions/qti/scripts/validate_output.sh
+    - _extensions/qti/qti.py
 ```
 
-- **pre-render** validates `questions.json` against the assessment JSON Schema
-  and stops the render on an error. Set `QTI_QUESTIONS_FILE` if the file has a
-  different path. For projects with multiple assessment JSON files, run the
-  `jsonschema validate` command for each file.
-- **post-render** validates generated `questestinterop` XML against the IMS QTI
-  1.2.1 DTD. Other XML files are skipped. This checks XML syntax and DTD
-  structure; it does not perform the additional ILIAS profile checks previously
-  handled by the Python validator.
+For every rendered `.qmd` whose front matter provides `qti` (directly or via
+`metadata-files`), it:
 
-Install the `jsonschema` CLI and `xmllint` yourself; no Python environment or
-package setup is needed. Then render normally:
+1. validates the questions against the JSON Schema and checks that question
+   and choice identifiers are unique,
+2. builds the `questestinterop` XML,
+3. checks the XML is well-formed and validates it against the IMS QTI 1.2.1 DTD,
+4. writes `<output-dir>/<document>.xml`.
 
-```sh
-quarto render
-```
+Any error is reported with its location and stops the render; nothing is
+written for an invalid collection. The standalone command performs the same
+steps.
 
-To run the checks manually:
+To cross-check an output file with `xmllint`:
 
 ```sh
-jsonschema validate _extensions/qti/schema/qti.schema.json questions.json
 xmllint --noout --nonet --path _extensions/qti/validation --valid _output/example.xml
 ```
 

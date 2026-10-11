@@ -1,5 +1,5 @@
 ---
-format: qti-docbook
+format: qti-html
 metadata-files:
   - questions.json
 ---

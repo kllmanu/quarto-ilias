@@ -1,10 +1,8 @@
 title: QTI 1.2.1 for ILIAS 11
 author: Local extension
-version: 1.0.0
+version: 2.0.0
+# The QTI XML is written by qti.py (a project pre-render hook); this format only renders a preview page.
 contributes:
   formats:
-    docbook:
-      filters:
-        - filter.lua
-      output-ext: xml
-      standalone: false
+    html:
+      toc: false
