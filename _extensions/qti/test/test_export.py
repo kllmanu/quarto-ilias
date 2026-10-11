@@ -7,7 +7,6 @@ import subprocess
 import sys
 import tempfile
 import unittest
-import zipfile
 from xml.parsers import expat
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
@@ -24,9 +23,12 @@ from validate_output import DTD, check
 class ExportTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        subprocess.run(["quarto", "render"], cwd=ROOT, check=True, capture_output=True,
+        temporary = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(temporary.cleanup)
+        cls.output = pathlib.Path(temporary.name)
+        subprocess.run(["quarto", "render", "--output-dir", str(cls.output)], cwd=ROOT, check=True, capture_output=True,
                        env=os.environ | {"PYTHONDONTWRITEBYTECODE": "1"})
-        cls.path = ROOT / "_output" / "example.xml"
+        cls.path = cls.output / "example.xml"
         cls.document = etree.parse(str(cls.path), etree.XMLParser(load_dtd=False, no_network=True))
 
     def test_dtd_and_profile(self):
@@ -36,7 +38,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(len(self.document.getroot().findall("item")), 3)
 
     def test_ilias_comment_parent_lookup(self):
-        for path in (self.path, ROOT / "_output" / "template.xml"):
+        for path in (self.path, self.output / "template.xml"):
             parser = expat.ParserCreate()
             state = {"depth": 0, "element": "", "path": {}}
 
@@ -116,11 +118,8 @@ class ExportTests(unittest.TestCase):
         document.find(".//render_choice").set("shuffle", "invalid")
         self.assert_rejected(document, "shuffle")
 
-    def test_portable_zip(self):
-        with zipfile.ZipFile(self.path.with_suffix(".zip")) as archive:
-            self.assertEqual(set(archive.namelist()), {self.path.name, DTD.name})
-            self.assertEqual(archive.read(self.path.name), self.path.read_bytes())
-            self.assertEqual(archive.read(DTD.name), DTD.read_bytes())
+    def test_xml_only_output(self):
+        self.assertEqual({path.name for path in self.output.iterdir()}, {"example.xml", "template.xml"})
 
 
 if __name__ == "__main__":

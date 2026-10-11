@@ -18,7 +18,7 @@ Choose a directory name when prompted. Quarto copies the extension,
 directory name. Edit `questions.json`, then run `quarto render` from the new
 directory. Python 3 with `venv` and `pip` support is required; the setup hook
 installs validation dependencies automatically on first render. The validated
-question XML and portable XML/DTD zip are written to `_output/`.
+question XML files are written to `_output/`.
 
 To add only the extension to an existing project instead:
 
@@ -91,10 +91,8 @@ Render with:
 quarto render quiz.qmd --to qti-docbook
 ```
 
-Before each render, the `clean_output.py` pre-render hook clears the configured
-project output directory, including when Quarto is invoked with `--no-clean`.
-This writes `quiz.xml` with all questions embedded. A project with an
-`output-dir` gets its XML and optional zip there. No separate item files or
+Rendering writes `quiz.xml` with all questions embedded. A project with an
+`output-dir` gets its XML there. No separate item files or
 assessment references are produced.
 
 Each document gets its own output file, so one project can hold several
@@ -102,8 +100,8 @@ question collections:
 
 ```
 _output/
-  quiz.xml   quiz.zip
-  exam2.xml  exam2.zip
+  quiz.xml
+  exam2.xml
 ```
 
 The output file name may contain only letters, digits, underscores, hyphens and
@@ -141,27 +139,6 @@ The templates target the [ILIAS 11 QTI 1.2 importers](https://github.com/ILIAS-e
 Local tests verify the QTI 1.2.1 DTD and the importer-specific metadata and scoring
 structure; an actual import into your ILIAS installation still needs verification.
 
-## Portable Bundles
-
-The optional `package.py` post-render hook writes `<name>.zip` beside each XML.
-It holds the question XML and `ims_qtiasiv1p2p1.dtd` at the root. It needs only
-Python 3 and no extra packages. This is a portable bundle, not an ILIAS native
-test/pool export ZIP or an IMS content package. Import the XML into ILIAS, not
-this ZIP. The old QTI 3 manifest and per-item dependencies are no longer used.
-
-```yaml
-project:
-  render:
-    - "*.qmd"
-  post-render:
-    - _extensions/qti/scripts/validate_output.py
-    - _extensions/qti/scripts/package.py
-```
-
-List it after the validation hook: Quarto stops at the first failing hook, so an
-invalid question collection is never packaged. Packaging also rejects an empty
-collection, duplicate item identifiers, or a missing DTD.
-
 The JSON Schema entry point is `_extensions/qti/schema/qti.schema.json`. It
 describes the assessment, `schema/question.schema.json` picks the schema for each
 question's type, and shared fields live in `schema/item.schema.json`.
@@ -182,21 +159,18 @@ and the filter keeps running.
 
 Python hooks and their environment helper live in `_extensions/qti/scripts/`.
 Configure the hooks in your
-project's `_quarto.yml` (see above for adding packaging as well):
+project's `_quarto.yml`:
 
 ```yaml
 project:
   pre-render:
     - _extensions/qti/scripts/setup_environment.py
-    - _extensions/qti/scripts/clean_output.py
     - _extensions/qti/scripts/validate_front_matter.py
   post-render: _extensions/qti/scripts/validate_output.py
 ```
 
 - **setup_environment** creates a private Python environment and installs the
   extension's dependencies on first use. Keep it first in the pre-render list.
-- **clean_output** empties `output-dir` before rendering. It uses Python's
-  standard library only and still runs when `--no-clean` is passed.
 - **pre-render** validates each document's `qti` data, including data loaded
   through `metadata-files`, against the JSON Schema and stops the render on an
   error. Documents without a `qti` key are skipped.
