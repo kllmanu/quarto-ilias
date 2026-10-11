@@ -1,5 +1,5 @@
 {
-    "$schema": "./_extensions/qti/schema/qti.schema.json",
+    "$schema": "./_extensions/qti/qti.schema.json",
     "qti": {
         "title": "Meine coole Fragen",
         "questions": [

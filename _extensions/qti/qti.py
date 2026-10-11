@@ -18,10 +18,9 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft202012Validator
 from lxml import etree
-from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parent
-SCHEMA_FILE = ROOT / "schema" / "qti.schema.json"
+SCHEMA_FILE = ROOT / "qti.schema.json"
 DTD_FILE = ROOT / "validation" / "ims_qtiasiv1p2p1.dtd"
 DOCTYPE = '<!DOCTYPE questestinterop SYSTEM "ims_qtiasiv1p2p1.dtd">'
 AUTHOR = "Quarto QTI"
@@ -35,17 +34,8 @@ class QtiError(Exception):
 # --- JSON Schema validation -------------------------------------------------
 
 
-def _retrieve(uri):
-    if not uri.startswith("file://"):
-        raise QtiError(f"Refusing to load non-local schema: {uri}")
-    path = Path(uri.removeprefix("file://"))
-    return Resource.from_contents(json.loads(path.read_text(encoding="utf-8")))
-
-
 def validate_schema(data, source):
-    schema = json.loads(SCHEMA_FILE.read_text(encoding="utf-8"))
-    schema["$id"] = SCHEMA_FILE.as_uri()
-    validator = Draft202012Validator(schema, registry=Registry(retrieve=_retrieve))
+    validator = Draft202012Validator(json.loads(SCHEMA_FILE.read_text(encoding="utf-8")))
     errors = sorted(validator.iter_errors(data), key=lambda e: list(e.absolute_path))
     if errors:
         lines = [f"{source}: schema validation failed:"]

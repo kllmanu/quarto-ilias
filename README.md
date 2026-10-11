@@ -50,7 +50,7 @@ The JSON file contains the `qti` object. Identifiers and titles are optional:
 
 ```json
 {
-  "$schema": "./_extensions/qti/schema/qti.schema.json",
+  "$schema": "./_extensions/qti/qti.schema.json",
   "qti": {
     "title": "Fractions & decimals",
     "questions": [
@@ -147,17 +147,17 @@ The generated XML targets the [ILIAS 11 QTI 1.2 importers](https://github.com/IL
 The DTD validates QTI structure, but an actual import into your ILIAS
 installation is still needed to verify importer-specific behavior.
 
-The JSON Schema entry point is `_extensions/qti/schema/qti.schema.json`. It
-describes the assessment, `schema/question.schema.json` picks the schema for each
-question's type, and shared fields live in `schema/item.schema.json`.
+The JSON Schema is `_extensions/qti/qti.schema.json`. `$defs/question` picks
+the definition for each question's type (`$defs/choice`, `$defs/text_entry`),
+and shared fields are `$defs/identifier`, `$defs/title` and `$defs/prompt`.
 
 ## Adding an interaction type
 
 Write a `build_<type>(parent, question, index)` function in
 `_extensions/qti/qti.py` (use `_item()` for the shared item skeleton) and
-register it in `BUILDERS`. Add `interactions/<type>/<type>.schema.json` for the
-question's shape, and add the type to the `enum` and an `if/then` branch in
-`schema/question.schema.json`. lxml escapes text and attribute values.
+register it in `BUILDERS`. In `_extensions/qti/qti.schema.json`, add a
+`$defs/<type>` definition for the question's shape, and add the type to the
+`enum` and an `if/then` branch in `$defs/question`. lxml escapes text and attribute values.
 
 ## Validation
 
