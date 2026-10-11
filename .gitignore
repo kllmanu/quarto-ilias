@@ -8,3 +8,5 @@ __pycache__/
 *.pyc
 
 /.luarc.json
+!.vscode/
+!.vscode/settings.json

@@ -52,5 +52,9 @@ function Pandoc(doc)
     local context = xml.escape_values(assessment_test.context(qti, {}, exam_folder))
     context.items = items
     local output = xml.format(template.render(template_file("test", "test"), context))
+    local _, declaration_end = output:find("?>", 1, true)
+    assert(declaration_end, "QTI template is missing an XML declaration")
+    output = output:sub(1, declaration_end) .. '\n<!DOCTYPE questestinterop SYSTEM "ims_qtiasiv1p2p1.dtd">' ..
+        output:sub(declaration_end + 1)
     return pandoc.Pandoc({ pandoc.RawBlock("docbook", output) }, doc.meta)
 end
