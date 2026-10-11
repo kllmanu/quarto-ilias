@@ -1,7 +1,5 @@
 ---
-format: qti-html
-metadata-files:
-    - questions.json
+title: Questions
 ---
 
-Hello, example!
+

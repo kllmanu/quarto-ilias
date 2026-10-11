@@ -2,20 +2,15 @@
 """Convert QTI question JSON to an IMS QTI 1.2.1 question collection for ILIAS 11.
 
 Usage:
-    qti.py QUESTIONS.json [-o OUTPUT.xml]   convert one file
-    qti.py                                  Quarto project hook: convert every rendered .qmd
-                                            whose front matter provides `qti` (directly or via
-                                            `metadata-files`)
+    qti.py QUESTIONS.json -o OUTPUT.xml
 """
 
 import argparse
 import json
-import os
 import re
 import sys
 from pathlib import Path
 
-import yaml
 from jsonschema import Draft202012Validator
 from lxml import etree
 
@@ -177,52 +172,16 @@ def convert(data, source, target):
     print(f"{target}: wrote {len(data['qti']['questions'])} questions, validated", file=sys.stderr)
 
 
-def load_file(path):
-    text = path.read_text(encoding="utf-8")
-    return json.loads(text) if path.suffix == ".json" else yaml.safe_load(text) or {}
-
-
-def front_matter(path):
-    match = re.match(r"\A---\r?\n(.*?)\r?\n---\s*(\r?\n|\Z)", path.read_text(encoding="utf-8"), re.S)
-    return (yaml.safe_load(match.group(1)) or {}) if match else {}
-
-
-def document_data(qmd):
-    meta = front_matter(qmd)
-    merged = {}
-    files = meta.get("metadata-files") or []
-    for name in [files] if isinstance(files, str) else files:
-        merged.update(load_file(qmd.parent / name))
-    merged.update(meta)
-    return {"qti": merged["qti"]} if "qti" in merged else None
-
-
-def run_quarto_hook():
-    inputs = [Path(p) for p in os.environ["QUARTO_PROJECT_INPUT_FILES"].splitlines() if p.endswith(".qmd")]
-    output_dir = os.environ.get("QUARTO_PROJECT_OUTPUT_DIR")
-    for qmd in inputs:
-        data = document_data(qmd)
-        if data is None:
-            continue
-        target_dir = Path(output_dir) / qmd.resolve().parent.relative_to(Path.cwd()) if output_dir else qmd.parent
-        convert(data, str(qmd), target_dir / f"{qmd.stem}.xml")
-
-
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("questions", nargs="?", type=Path, help="question JSON or YAML file")
-    parser.add_argument("-o", "--output", type=Path, help="output XML file (default: <questions>.xml)")
+    parser.add_argument("questions", type=Path, help="question JSON file")
+    parser.add_argument("-o", "--output", type=Path, required=True, help="output XML file")
     args = parser.parse_args(argv)
 
     try:
-        if args.questions:
-            convert(load_file(args.questions), str(args.questions),
-                    args.output or args.questions.with_suffix(".xml"))
-        elif "QUARTO_PROJECT_INPUT_FILES" in os.environ:
-            run_quarto_hook()
-        else:
-            parser.error("a questions file is required outside a Quarto render")
-    except (QtiError, OSError, json.JSONDecodeError, yaml.YAMLError) as error:
+        data = json.loads(args.questions.read_text(encoding="utf-8"))
+        convert(data, str(args.questions), args.output)
+    except (QtiError, OSError, json.JSONDecodeError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 1
     return 0

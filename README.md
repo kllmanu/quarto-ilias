@@ -5,7 +5,8 @@ for ILIAS 11: one `questestinterop` XML file containing all questions as `item`
 elements. The conversion is done by a Python script,
 `_extensions/qti/qti.py`, which validates the input against the JSON Schema,
 builds the XML, and validates the result against the QTI 1.2.1 DTD before
-writing it. It runs as a Quarto pre-render hook or standalone.
+writing it. Run it from the command line with the questions file and an output
+path.
 
 ## Install
 
@@ -17,11 +18,13 @@ quarto use template kllmanu/quarto-qti
 
 Choose a directory name when prompted. Quarto copies the extension,
 `_quarto.yml`, and `questions.json`, and renames `template.qmd` to match the
-directory name. Edit `questions.json`, then run `quarto render` from the new
-directory. Python 3 with the packages in `_extensions/qti/requirements.txt`
-must be available to Quarto (`pip install -r _extensions/qti/requirements.txt`;
-set `QUARTO_PYTHON` to pick a specific interpreter or virtual environment).
-The validated question XML files are written to `_output/`.
+directory name. Edit `questions.json`, then run the converter (see
+[Convert](#convert)). It needs Python 3 with the packages in
+`_extensions/qti/requirements.txt`:
+
+```sh
+pip install -r _extensions/qti/requirements.txt
+```
 
 To add only the extension to an existing project instead:
 
@@ -29,24 +32,13 @@ To add only the extension to an existing project instead:
 quarto add kllmanu/quarto-qti
 ```
 
-This copies `_extensions/qti/` into your project. Add the hook to your
-`_quarto.yml` (see [Validation](#validation)) and use `format: qti-html`.
+This copies `_extensions/qti/` into your project.
 
 ## Use
 
-Keep an exam's metadata in a JSON sidecar and include it from that document's
-front matter. `questions.json` uses the extension's JSON Schema, so VS Code can
-validate and complete the question structure while editing the data file.
-
-```yaml
----
-format: qti-html
-metadata-files:
-  - questions.json
----
-```
-
-The JSON file contains the `qti` object. Identifiers and titles are optional:
+Keep an exam's questions in a JSON file. `questions.json` uses the extension's
+JSON Schema, so VS Code can validate and complete the question structure while
+editing it.
 
 ```json
 {
@@ -69,9 +61,8 @@ The JSON file contains the `qti` object. Identifiers and titles are optional:
 }
 ```
 
-See [template.qmd](template.qmd) and [questions.json](questions.json) for the
-complete example. Each document can include its own metadata file, allowing
-several exams in one project.
+See [questions.json](questions.json) for the complete example. Use one JSON
+file per exam.
 
 Every question has a `type` and a `prompt`, and an optional `identifier` and
 `title`:
@@ -88,37 +79,21 @@ gap. The prompt becomes the question text and the gap is the answer field.
 The author metadata defaults to `Quarto QTI`, and the content editing mode is
 `default` (ILIAS's regular editor).
 
-Render with:
+## Convert
 
 ```sh
-quarto render
+python3 _extensions/qti/qti.py questions.json -o _output/quiz.xml
 ```
 
-or convert a question file directly, without Quarto:
-
-```sh
-python3 _extensions/qti/qti.py questions.json -o quiz.xml
-```
-
-Rendering writes `quiz.xml` (named after `quiz.qmd`) with all questions
-embedded, next to a `quiz.html` preview page. A project with an
-`output-dir` gets its XML there. No separate item files or
+Both the questions file and `-o/--output` are required. The output directory
+is created if needed. The XML contains all questions; no separate item files or
 assessment references are produced.
-
-Each document gets its own output file, so one project can hold several
-question collections:
-
-```
-_output/
-  quiz.xml
-  exam2.xml
-```
 
 The output file name may contain only letters, digits, underscores, hyphens and
 periods.
 
 Identifiers begin with a letter or underscore and may contain letters, digits,
-underscores, periods and hyphens. They must be unique within a document, but two documents may reuse
+underscores, periods and hyphens. They must be unique within a file, but two files may reuse
 the same ones. Question identifiers are optional; when omitted, one is generated
 from the question title, or from its prompt if there is no title. The question
 position is included so repeated titles still produce unique identifiers.
@@ -133,8 +108,6 @@ a root `qticomment` followed by formatting whitespace triggers a parent-lookup
 bug in ILIAS 11's importer. Question titles and identifiers are still emitted.
 Generated identifiers replace characters outside the QTI identifier pattern
 with underscores and are valid even when the source text starts with a digit.
-Quote choice text that YAML could interpret as a boolean or number, such as
-`"Yes"`, `"No"` or `"1"`, when writing questions in YAML.
 
 ## ILIAS Import
 
@@ -161,26 +134,16 @@ register it in `BUILDERS`. In `_extensions/qti/qti.schema.json`, add a
 
 ## Validation
 
-`qti.py` runs as a pre-render hook in your project's `_quarto.yml`:
-
-```yaml
-project:
-  pre-render:
-    - _extensions/qti/qti.py
-```
-
-For every rendered `.qmd` whose front matter provides `qti` (directly or via
-`metadata-files`), it:
+`qti.py`:
 
 1. validates the questions against the JSON Schema and checks that question
    and choice identifiers are unique,
 2. builds the `questestinterop` XML,
 3. checks the XML is well-formed and validates it against the IMS QTI 1.2.1 DTD,
-4. writes `<output-dir>/<document>.xml`.
+4. writes the output file.
 
-Any error is reported with its location and stops the render; nothing is
-written for an invalid collection. The standalone command performs the same
-steps.
+Any error is reported with its location and exits with status 1; nothing is
+written for an invalid collection.
 
 To cross-check an output file with `xmllint`:
 

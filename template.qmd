@@ -1,5 +1,0 @@
----
-format: qti-html
-metadata-files:
-  - questions.json
----
